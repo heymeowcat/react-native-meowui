@@ -1,0 +1,92 @@
+/**
+ * MeowUI Color System
+ * Vibrant gradient-based color palette inspired by modern design
+ */
+
+export const gradients = {
+    primary: ['#D946EF', '#D946EF'], 
+    secondary: ['#FACC15', '#FACC15'], 
+    accent: ['#06B6D4', '#06B6D4'], 
+    success: ['#22C55E', '#22C55E'],
+    warning: ['#F97316', '#F97316'],
+    error: ['#EF4444', '#EF4444'],
+    neutral: ['#1F2937', '#1F2937'],
+    
+    sunset: ['#FACC15', '#F97316', '#EF4444'],
+    ocean: ['#06B6D4', '#3B82F6', '#6366F1'],
+    aurora: ['#A3E635', '#22C55E', '#10B981'],
+    fire: ['#FCA5A5', '#EF4444', '#B91C1C'],
+};
+export const lightColors = {
+    background: '#FFD54F', 
+    surface: '#FFFFFF', 
+    surfaceVariant: '#F3F4F6', 
+    onBackground: '#000000',
+    onSurface: '#000000',
+    onSurfaceVariant: '#374151',
+    primary: '#D946EF',
+    onPrimary: '#FFFFFF',
+    primaryContainer: '#FAE8FF',
+    onPrimaryContainer: '#86198F',
+    secondary: '#06B6D4',
+    onSecondary: '#FFFFFF',
+    secondaryContainer: '#CFFAFE',
+    onSecondaryContainer: '#155E75',
+    accent: '#84CC16',
+    accent: '#84CC16',
+    onAccent: '#000000',
+    success: '#22C55E',
+    onSuccess: '#FFFFFF',
+    warning: '#F97316',
+    onWarning: '#FFFFFF',
+    error: '#EF4444',
+    onError: '#FFFFFF',
+    outline: '#000000',
+    outlineVariant: '#000000',
+    scrim: 'rgba(0,0,0,0.5)',
+    backdrop: 'rgba(255,255,255,0.9)',
+    shadow: '#000000',
+    shadowStrong: '#000000',
+    glass: '#FFFFFF',
+    glassStrong: '#FFFFFF',
+};
+export const darkColors = {
+    background: '#111827', 
+    surface: '#1F2937', 
+    surfaceVariant: '#374151',
+    onBackground: '#FFFFFF',
+    onSurface: '#F9FAFB',
+    onSurfaceVariant: '#D1D5DB',
+    primary: '#4ADE80',
+    onPrimary: '#000000',
+    primaryContainer: '#14532D',
+    onPrimaryContainer: '#DCFCE7',
+    secondary: '#F472B6',
+    onSecondary: '#500724',
+    secondaryContainer: '#831843',
+    onSecondaryContainer: '#FBCFE8',
+    accent: '#22D3EE',
+    onAccent: '#083344',
+    success: '#4ADE80',
+    onSuccess: '#000000',
+    warning: '#FBBF24',
+    onWarning: '#451A03',
+    error: '#F87171',
+    onError: '#450A0A',
+    // Borders (White or Neon)
+    outline: '#FFFFFF',
+    outlineVariant: '#9CA3AF',
+    scrim: 'rgba(0,0,0,0.8)',
+    backdrop: 'rgba(0,0,0,0.8)',
+    shadow: '#000000',
+    shadowStrong: '#000000',
+    glass: '#1F2937',
+    glassStrong: '#1F2937',
+};
+
+export const getGradient = (name) => gradients[name];
+export default {
+    gradients,
+    light: lightColors,
+    dark: darkColors,
+};

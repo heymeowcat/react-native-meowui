@@ -1,0 +1,1 @@
+export { MeowText, MeowText as Text, default, DisplayLarge, DisplayMedium, DisplaySmall, HeadlineLarge, HeadlineMedium, HeadlineSmall, TitleLarge, TitleMedium, TitleSmall, BodyLarge, BodyMedium, BodySmall, LabelLarge, LabelMedium, LabelSmall, } from './Text';
