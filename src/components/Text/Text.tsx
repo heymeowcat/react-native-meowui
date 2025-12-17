@@ -3,7 +3,7 @@
  * Typography component with gradient text support
  */
 
-import React from 'react';
+import React, { memo } from 'react';
 import {
   Text as RNText,
   StyleSheet,
@@ -39,10 +39,11 @@ export const MeowText: React.FC<MeowTextProps> = ({
   const { theme } = useTheme();
   
   // Get typography style
-  const typographyStyle = theme.typography[variant];
+  const typographyOverride = theme.components?.text?.variants?.[variant];
+  const typographyStyle = { ...theme.typography[variant], ...(typographyOverride as TextStyle) };
   
   // Get text color
-  const textColor = color || theme.colors.onBackground;
+  const textColor = color || theme.components?.text?.defaultColor || theme.colors.onBackground;
   
   // Combined style
   const combinedStyle: TextStyle = {
@@ -160,4 +161,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MeowText;
+export default memo(MeowText);

@@ -18,6 +18,8 @@ export interface SnackbarProps {
     gradient?: boolean;
     gradientColors?: string[];
     style?: StyleProp<ViewStyle>;
+    /** Offset from bottom/top to account for FAB or other elements */
+    fabOffset?: number;
 }
 export declare const Snackbar: React.FC<SnackbarProps>;
 export default Snackbar;

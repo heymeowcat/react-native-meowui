@@ -80,6 +80,7 @@ export {
   IconButton,
   // FAB
   FAB,
+  FABGroup,
   // Divider
   Divider,
   // Modal
@@ -90,6 +91,22 @@ export {
   Snackbar,
   // GradientBackground
   GradientBackground,
+  // Toast
+  Toast,
+  ToastProvider,
+  useToast,
+  // ActivityIndicator
+  ActivityIndicator,
+  // Tooltip
+  Tooltip,
+  // Banner
+  Banner,
+  // ToggleButton
+  ToggleButton,
+  // HelperText
+  HelperText,
+  // PencilBurst
+  PencilBurst,
 } from './components';
 
 export type {
@@ -117,12 +134,30 @@ export type {
   FABProps,
   FABSize,
   FABVariant,
+  FABGroupProps,
+  FABGroupAction,
   DividerProps,
   ModalProps,
   BottomSheetProps,
   SnackbarProps,
   SnackbarPosition,
   GradientBackgroundProps,
+  ToastProps,
+  ToastConfig,
+  ToastType,
+  ToastPosition,
+  ActivityIndicatorProps,
+  ActivityIndicatorSize,
+  TooltipProps,
+  BannerProps,
+  BannerVariant,
+  BannerAction,
+  ToggleButtonProps,
+  ToggleButtonStatus,
+  ToggleButtonGroupProps,
+  HelperTextProps,
+  HelperTextType,
+  PencilBurstProps,
 } from './components';
 
 // New Core Components
@@ -146,4 +181,5 @@ export * from './components/Portal/PortalHost';
 export * from './components/Appbar/Appbar';
 
 // Hooks
-export { useAnimatedPress, useGradient } from './hooks';
+export { useAnimatedPress, useGradient, usePencilBurst } from './hooks';
+export type { PencilStroke, UsePencilBurstOptions } from './hooks';

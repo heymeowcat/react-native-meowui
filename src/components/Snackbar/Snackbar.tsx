@@ -22,6 +22,7 @@ import Animated, {
   withDelay,
 } from 'react-native-reanimated';
 import { useTheme } from '../../theme';
+import { Portal } from '../Portal/Portal';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -40,6 +41,8 @@ export interface SnackbarProps {
   gradient?: boolean;
   gradientColors?: string[];
   style?: StyleProp<ViewStyle>;
+  /** Offset from bottom/top to account for FAB or other elements */
+  fabOffset?: number;
 }
 
 export const Snackbar: React.FC<SnackbarProps> = ({
@@ -52,6 +55,7 @@ export const Snackbar: React.FC<SnackbarProps> = ({
   gradient = false,
   gradientColors,
   style,
+  fabOffset = 0,
 }) => {
   const { theme } = useTheme();
   
@@ -122,26 +126,27 @@ export const Snackbar: React.FC<SnackbarProps> = ({
   
   const containerStyle: ViewStyle = {
     ...styles.container,
-    [position]: 24,
+    [position]: 24 + fabOffset,
   };
   
   const snackbarStyle: ViewStyle = {
     ...styles.snackbar,
     backgroundColor: theme.colors.surfaceVariant,
-    borderRadius: theme.borderRadius.md, // Less rounded for snackbar
+    borderRadius: theme.borderRadius.md,
     borderWidth: 2,
     borderColor: theme.colors.outline,
-    ...theme.elevation[3], // Hard shadow
+    ...theme.elevation[3],
     shadowColor: '#000',
   };
   
-  //  version simplifies to single style
   return (
-    <Animated.View style={[containerStyle, animatedStyle, style]}>
-      <View style={snackbarStyle}>
-        {content}
-      </View>
-    </Animated.View>
+    <Portal>
+      <Animated.View style={[containerStyle, animatedStyle, style]}>
+        <View style={snackbarStyle}>
+          {content}
+        </View>
+      </Animated.View>
+    </Portal>
   );
 };
 
@@ -150,7 +155,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 16,
     right: 16,
-    zIndex: 1000,
+    zIndex: 2000,
   },
   snackbar: {
     flexDirection: 'row',
@@ -172,3 +177,4 @@ const styles = StyleSheet.create({
 });
 
 export default Snackbar;
+

@@ -3,7 +3,7 @@
  * A beautiful button with gradient support and smooth animations
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, memo } from 'react';
 import {
   StyleSheet,
   Text,
@@ -20,6 +20,8 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { useTheme } from '../../theme';
+import { usePencilBurst } from '../../hooks/usePencilBurst';
+import { PencilBurst } from '../PencilBurst/PencilBurst';
 
 // Button variants
 export type ButtonVariant = 'filled' | 'outlined' | 'ghost' | 'gradient';
@@ -39,11 +41,13 @@ export interface ButtonProps {
   fullWidth?: boolean;
   style?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
+  /** Enable playful pencil burst effect on press */
+  enablePencilBurst?: boolean;
 }
 
 const styles = StyleSheet.create({
   container: {
-    overflow: 'hidden',
+    overflow: 'visible',
   },
   fullWidth: {
     width: '100%',
@@ -73,14 +77,24 @@ export const Button: React.FC<ButtonProps> = ({
   fullWidth = false,
   style,
   textStyle,
+  enablePencilBurst = true,
 }) => {
   const { theme } = useTheme();
   const scale = useSharedValue(1);
+  const { trigger, strokes, progress } = usePencilBurst({
+    strokeCount: 8,
+    duration: 350,
+    maxLength: 20,
+    minLength: 10,
+  });
   
   // Animation handlers - cleaner scale animation
   const handlePressIn = useCallback(() => {
     scale.value = withSpring(0.96, theme.animations.springs.snappy);
-  }, [scale, theme]);
+    if (enablePencilBurst && !disabled && !loading) {
+      trigger();
+    }
+  }, [scale, theme, enablePencilBurst, disabled, loading, trigger]);
   
   const handlePressOut = useCallback(() => {
     scale.value = withSpring(1, theme.animations.springs.snappy);
@@ -91,43 +105,42 @@ export const Button: React.FC<ButtonProps> = ({
     transform: [{ scale: scale.value }],
   }));
   
-  // Get size styles
-  const sizeStyles = theme.componentSizes.button[size];
+  const sizeStyles = (theme.components?.button?.sizes?.[size] as {
+    height: number;
+    paddingHorizontal: number;
+  }) || theme.componentSizes.button[size];
   
   // Get variant styles
   const getVariantStyles = (): ViewStyle => {
     const baseStyle: ViewStyle = {
       height: sizeStyles.height,
       paddingHorizontal: sizeStyles.paddingHorizontal,
-      borderRadius: theme.borderRadius.full, // Pill shape often used
+      borderRadius: theme.borderRadius.full,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
       gap: theme.spacing[2],
-      borderWidth: 2, // Thick border
-      borderColor: theme.colors.outline, // Default black/white outline
+      borderWidth: 2,
+      borderColor: theme.colors.outline,
     };
     
+    const override = theme.components?.button?.variants?.[variant];
     switch (variant) {
       case 'filled':
       case 'gradient':
         return {
           ...baseStyle,
-          backgroundColor: theme.colors.primary,
-          // Remove default border for filled if we want cleaner look? 
-          // Actually  usually keeps borders even on filled
-          borderColor: theme.colors.outline,
-          // Add hard shadow logic? Handled by container style maybe or here?
-          // Since elevation is hard shadow now, apply it.
+          backgroundColor: (override?.backgroundColor as string) || theme.colors.primary,
+          borderColor: (override?.borderColor as string) || theme.colors.outline,
           ...theme.elevation[2], 
-          shadowColor: theme.colors.shadow, // Ensure shadow color matches theme
+          shadowColor: theme.colors.shadow,
         };
       case 'outlined':
         return {
           ...baseStyle,
           backgroundColor: theme.colors.surface,
-          borderColor: theme.colors.outline,
-          ...theme.elevation[0], // No shadow or subtle
+          borderColor: (override?.borderColor as string) || theme.colors.outline,
+          ...theme.elevation[0],
         };
       case 'ghost':
         return {
@@ -148,10 +161,10 @@ export const Button: React.FC<ButtonProps> = ({
     switch (variant) {
       case 'filled':
       case 'gradient':
-        return theme.colors.onPrimary; // Usually white or black depending on contrast
+        return (theme.components?.button?.variants?.[variant]?.textColor as string) || theme.colors.onPrimary;
       case 'outlined':
       case 'ghost':
-        return theme.colors.onBackground;
+        return (theme.components?.button?.variants?.[variant]?.textColor as string) || theme.colors.onBackground;
       default:
         return theme.colors.onPrimary;
     }
@@ -172,7 +185,7 @@ export const Button: React.FC<ButtonProps> = ({
                 {
                   color: getTextColor(),
                   fontSize: size === 'medium' ? 14 : size === 'small' ? 12 : 16,
-                  fontWeight: '700', // Bold labels
+                  fontWeight: '700',
                 },
                 textStyle,
               ]}
@@ -195,6 +208,7 @@ export const Button: React.FC<ButtonProps> = ({
       onPressOut={handlePressOut}
       disabled={disabled || loading}
       style={[
+        styles.container,
         animatedStyle,
         getVariantStyles(),
         disabled && styles.disabled,
@@ -203,8 +217,12 @@ export const Button: React.FC<ButtonProps> = ({
       ]}
     >
       {renderContent()}
+      {enablePencilBurst && strokes.length > 0 && (
+        <PencilBurst strokes={strokes} progress={progress} size={180} />
+      )}
     </AnimatedPressable>
   );
 };
 
-export default Button;
+export default memo(Button);
+

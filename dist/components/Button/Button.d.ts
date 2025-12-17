@@ -20,6 +20,9 @@ export interface ButtonProps {
     fullWidth?: boolean;
     style?: StyleProp<ViewStyle>;
     textStyle?: StyleProp<TextStyle>;
+    /** Enable playful pencil burst effect on press */
+    enablePencilBurst?: boolean;
 }
 export declare const Button: React.FC<ButtonProps>;
-export default Button;
+declare const _default: React.NamedExoticComponent<ButtonProps>;
+export default _default;

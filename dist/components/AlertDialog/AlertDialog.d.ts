@@ -1,6 +1,5 @@
 /**
- * MeowUI AlertDialog Component
- * Modal alert with MeowUI styling
+ * MeowUI AlertDialog
  */
 import React from 'react';
 export interface AlertDialogProps {
@@ -14,7 +13,8 @@ export interface AlertDialogProps {
         onPress: () => void;
         variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
     }[];
-    icon?: string;
+    /** Custom icon node instead of emoji */
+    icon?: React.ReactNode;
 }
 export declare const AlertDialog: React.FC<AlertDialogProps>;
 export default AlertDialog;

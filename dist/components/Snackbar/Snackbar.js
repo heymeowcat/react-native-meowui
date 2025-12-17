@@ -6,8 +6,9 @@ import React, { useEffect } from 'react';
 import { View, Text, Pressable, StyleSheet, Dimensions, } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, } from 'react-native-reanimated';
 import { useTheme } from '../../theme';
+import { Portal } from '../Portal/Portal';
 const { width: screenWidth } = Dimensions.get('window');
-export const Snackbar = ({ visible, message, action, onDismiss, duration = 4000, position = 'bottom', gradient = false, gradientColors, style, }) => {
+export const Snackbar = ({ visible, message, action, onDismiss, duration = 4000, position = 'bottom', gradient = false, gradientColors, style, fabOffset = 0, }) => {
     const { theme } = useTheme();
     const translateY = useSharedValue(position === 'bottom' ? 100 : -100);
     const opacity = useSharedValue(0);
@@ -59,30 +60,31 @@ export const Snackbar = ({ visible, message, action, onDismiss, duration = 4000,
     </>);
     const containerStyle = {
         ...styles.container,
-        [position]: 24,
+        [position]: 24 + fabOffset,
     };
     const snackbarStyle = {
         ...styles.snackbar,
         backgroundColor: theme.colors.surfaceVariant,
-        borderRadius: theme.borderRadius.md, // Less rounded for snackbar
+        borderRadius: theme.borderRadius.md,
         borderWidth: 2,
         borderColor: theme.colors.outline,
-        ...theme.elevation[3], // Hard shadow
+        ...theme.elevation[3],
         shadowColor: '#000',
     };
-    //  version simplifies to single style
-    return (<Animated.View style={[containerStyle, animatedStyle, style]}>
-      <View style={snackbarStyle}>
-        {content}
-      </View>
-    </Animated.View>);
+    return (<Portal>
+      <Animated.View style={[containerStyle, animatedStyle, style]}>
+        <View style={snackbarStyle}>
+          {content}
+        </View>
+      </Animated.View>
+    </Portal>);
 };
 const styles = StyleSheet.create({
     container: {
         position: 'absolute',
         left: 16,
         right: 16,
-        zIndex: 1000,
+        zIndex: 2000,
     },
     snackbar: {
         flexDirection: 'row',

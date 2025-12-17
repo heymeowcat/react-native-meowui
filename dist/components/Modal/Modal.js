@@ -2,21 +2,22 @@
  * MeowUI Modal Component
  * Animated modal dialog with blur backdrop
  */
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Pressable, Dimensions, } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, runOnJS, } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
 import { useTheme } from '../../theme';
+import { Portal } from '../Portal/Portal';
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 export const Modal = ({ visible, onDismiss, children, dismissable = true, gradientBorder = false, gradientColors, blurBackdrop = true, style, contentStyle, }) => {
     const { theme } = useTheme();
     const backdropOpacity = useSharedValue(0);
     const contentScale = useSharedValue(0.9);
     const contentOpacity = useSharedValue(0);
-    const isRendered = useSharedValue(false);
+    const [isRendered, setIsRendered] = useState(visible);
     useEffect(() => {
         if (visible) {
-            isRendered.value = true;
+            setIsRendered(true);
             backdropOpacity.value = withTiming(1, theme.animations.timings.entrance);
             contentScale.value = withSpring(1, theme.animations.springs.smooth);
             contentOpacity.value = withTiming(1, theme.animations.timings.entrance);
@@ -25,7 +26,7 @@ export const Modal = ({ visible, onDismiss, children, dismissable = true, gradie
             backdropOpacity.value = withTiming(0, theme.animations.timings.exit);
             contentScale.value = withTiming(0.9, theme.animations.timings.exit);
             contentOpacity.value = withTiming(0, theme.animations.timings.exit, () => {
-                isRendered.value = false;
+                runOnJS(setIsRendered)(false);
             });
         }
     }, [visible]);
@@ -41,33 +42,45 @@ export const Modal = ({ visible, onDismiss, children, dismissable = true, gradie
             onDismiss();
         }
     };
-    if (!visible)
+    if (!visible && !isRendered)
         return null;
-    return (<View style={[styles.container, style]}>
-      <Animated.View style={[styles.backdrop, backdropStyle]}>
-        {blurBackdrop ? (<BlurView intensity={30} style={styles.blur}>
-            <Pressable style={styles.backdropPress} onPress={handleBackdropPress}/>
-          </BlurView>) : (<Pressable style={[styles.backdropPress, { backgroundColor: theme.colors.scrim }]} onPress={handleBackdropPress}/>)}
-      </Animated.View>
-      
-      <Animated.View style={[styles.contentContainer, contentAnimatedStyle]}>
-        <View style={[
-            styles.modal, // Renamed from styles.content to styles.modal for clarity based on instruction
+    return (<Portal>
+      <View style={[styles.container, style]} pointerEvents="box-none">
+        <Animated.View style={[styles.backdrop, backdropStyle]}>
+          {blurBackdrop ? (<BlurView intensity={30} style={styles.blur}>
+              <Pressable style={styles.backdropPress} onPress={handleBackdropPress}/>
+            </BlurView>) : (<Pressable style={[styles.backdropPress, { backgroundColor: 'rgba(0,0,0,0.4)' }]} onPress={handleBackdropPress}/>)}
+        </Animated.View>
+        
+        <View style={styles.contentContainer} pointerEvents="box-none">
+          <Animated.View style={[
+            styles.content,
             {
                 backgroundColor: theme.colors.surface,
-                borderRadius: theme.borderRadius.lg,
+                borderRadius: theme.borderRadius.xl,
                 borderWidth: 2,
                 borderColor: theme.colors.outline,
                 ...theme.elevation[4],
-                shadowColor: '#000',
-                padding: 24, // Restore standard padding
             },
+            gradientBorder && { borderWidth: 0 },
             contentStyle,
+            contentAnimatedStyle
         ]}>
-          {children}
+            {gradientBorder && (<View style={[
+                StyleSheet.absoluteFill,
+                {
+                    borderRadius: theme.borderRadius.xl,
+                    borderWidth: 4,
+                    borderColor: theme.colors.primary,
+                    zIndex: -1
+                }
+            ]}/>)}
+            
+            {children}
+          </Animated.View>
         </View>
-      </Animated.View>
-    </View>);
+      </View>
+    </Portal>);
 };
 const styles = StyleSheet.create({
     container: {
@@ -86,12 +99,13 @@ const styles = StyleSheet.create({
     backdropPress: {
         ...StyleSheet.absoluteFillObject,
     },
-    modal: {
+    content: {
         overflow: 'hidden',
+        padding: 24,
     },
     contentContainer: {
-        width: '90%', 
-        maxWidth: 500, 
+        width: '90%',
+        maxWidth: 500,
         maxHeight: '80%',
     },
     gradientBorder: {

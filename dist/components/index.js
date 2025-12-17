@@ -20,7 +20,7 @@ export { Chip } from './Chip';
 // IconButton
 export { IconButton } from './IconButton';
 // FAB
-export { FAB } from './FAB';
+export { FAB, FABGroup } from './FAB';
 // Divider
 export { Divider } from './Divider';
 // Modal
@@ -31,3 +31,17 @@ export { BottomSheet } from './BottomSheet';
 export { Snackbar } from './Snackbar';
 // GradientBackground
 export { GradientBackground } from './GradientBackground';
+// Toast
+export { Toast, ToastProvider, useToast } from './Toast';
+// ActivityIndicator
+export { ActivityIndicator } from './ActivityIndicator';
+// Tooltip
+export { Tooltip } from './Tooltip';
+// Banner
+export { Banner } from './Banner';
+// ToggleButton
+export { ToggleButton } from './ToggleButton';
+// HelperText
+export { HelperText } from './HelperText';
+// PencilBurst
+export { PencilBurst } from './PencilBurst';

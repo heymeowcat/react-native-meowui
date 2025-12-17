@@ -31,4 +31,5 @@ export declare const BodySmall: React.FC<Omit<MeowTextProps, 'variant'>>;
 export declare const LabelLarge: React.FC<Omit<MeowTextProps, 'variant'>>;
 export declare const LabelMedium: React.FC<Omit<MeowTextProps, 'variant'>>;
 export declare const LabelSmall: React.FC<Omit<MeowTextProps, 'variant'>>;
-export default MeowText;
+declare const _default: React.NamedExoticComponent<MeowTextProps>;
+export default _default;

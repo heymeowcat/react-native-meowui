@@ -16,7 +16,7 @@ export const ProgressBar = ({ progress, color, trackColor, style, height = 12, i
     }, [progress, theme]);
     const animatedStyle = useAnimatedStyle(() => {
         return {
-            width: `${width.value * 100}%`,     
+            width: `${width.value * 100}%`,
         };
     });
     return (<View style={[

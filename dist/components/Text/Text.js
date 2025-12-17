@@ -2,16 +2,17 @@
  * MeowUI Text Component
  * Typography component with gradient text support
  */
-import React from 'react';
+import React, { memo } from 'react';
 import { Text as RNText, StyleSheet, } from 'react-native';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { useTheme } from '../../theme';
 export const MeowText = ({ children, variant = 'bodyMedium', color, gradient = false, gradientColors, align = 'left', numberOfLines, style, }) => {
     const { theme } = useTheme();
     // Get typography style
-    const typographyStyle = theme.typography[variant];
+    const typographyOverride = theme.components?.text?.variants?.[variant];
+    const typographyStyle = { ...theme.typography[variant], ...typographyOverride };
     // Get text color
-    const textColor = color || theme.colors.onBackground;
+    const textColor = color || theme.components?.text?.defaultColor || theme.colors.onBackground;
     // Combined style
     const combinedStyle = {
         ...typographyStyle,
@@ -61,4 +62,4 @@ const styles = StyleSheet.create({
         opacity: 0,
     },
 });
-export default MeowText;
+export default memo(MeowText);

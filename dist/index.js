@@ -1,6 +1,6 @@
 /**
  * React Native MeowUI
- * A modern, playful UI framework
+ * A modern, playful UI framework with vibrant gradients and smooth animations
  */
 // Theme
 export { MeowProvider, useTheme, useMeowTheme, createTheme, gradients, lightColors, darkColors, getGradient, typography, fontWeights, fontSizes, spacing, borderRadius, elevation, componentSizes, durations, springs, easings, timings, } from './theme';
@@ -25,7 +25,7 @@ Chip,
 // IconButton
 IconButton, 
 // FAB
-FAB, 
+FAB, FABGroup, 
 // Divider
 Divider, 
 // Modal
@@ -35,7 +35,21 @@ BottomSheet,
 // Snackbar
 Snackbar, 
 // GradientBackground
-GradientBackground, } from './components';
+GradientBackground, 
+// Toast
+Toast, ToastProvider, useToast, 
+// ActivityIndicator
+ActivityIndicator, 
+// Tooltip
+Tooltip, 
+// Banner
+Banner, 
+// ToggleButton
+ToggleButton, 
+// HelperText
+HelperText, 
+// PencilBurst
+PencilBurst, } from './components';
 // New Core Components
 export * from './components/Checkbox/Checkbox';
 export * from './components/RadioButton/RadioButton';
@@ -53,4 +67,4 @@ export * from './components/Portal/Portal';
 export * from './components/Portal/PortalHost';
 export * from './components/Appbar/Appbar';
 // Hooks
-export { useAnimatedPress, useGradient } from './hooks';
+export { useAnimatedPress, useGradient, usePencilBurst } from './hooks';

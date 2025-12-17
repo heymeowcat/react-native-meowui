@@ -57,8 +57,8 @@ export { IconButton } from './IconButton';
 export type { IconButtonProps, IconButtonVariant, IconButtonSize } from './IconButton';
 
 // FAB
-export { FAB } from './FAB';
-export type { FABProps, FABSize, FABVariant } from './FAB';
+export { FAB, FABGroup } from './FAB';
+export type { FABProps, FABSize, FABVariant, FABGroupProps, FABGroupAction } from './FAB';
 
 // Divider
 export { Divider } from './Divider';
@@ -79,3 +79,31 @@ export type { SnackbarProps, SnackbarPosition } from './Snackbar';
 // GradientBackground
 export { GradientBackground } from './GradientBackground';
 export type { GradientBackgroundProps } from './GradientBackground';
+
+// Toast
+export { Toast, ToastProvider, useToast } from './Toast';
+export type { ToastProps, ToastConfig, ToastType, ToastPosition } from './Toast';
+
+// ActivityIndicator
+export { ActivityIndicator } from './ActivityIndicator';
+export type { ActivityIndicatorProps, ActivityIndicatorSize } from './ActivityIndicator';
+
+// Tooltip
+export { Tooltip } from './Tooltip';
+export type { TooltipProps, TooltipPosition } from './Tooltip';
+
+// Banner
+export { Banner } from './Banner';
+export type { BannerProps, BannerVariant, BannerAction } from './Banner';
+
+// ToggleButton
+export { ToggleButton } from './ToggleButton';
+export type { ToggleButtonProps, ToggleButtonStatus, ToggleButtonGroupProps } from './ToggleButton';
+
+// HelperText
+export { HelperText } from './HelperText';
+export type { HelperTextProps, HelperTextType } from './HelperText';
+
+// PencilBurst
+export { PencilBurst } from './PencilBurst';
+export type { PencilBurstProps } from './PencilBurst';
