@@ -2,6 +2,11 @@
 
 A modern, playful UI framework for React Native with comic-style animations.
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/49a336cd-a84a-4afe-aa61-17f647eef85a" width="250" alt="Light Mode" />
+  <img src="https://github.com/user-attachments/assets/8cb31c2a-8f3a-49ce-8b54-cf78ad274d31" width="250" alt="Dark Mode" />
+</p>
+
 ## Installation
 
 ```bash
