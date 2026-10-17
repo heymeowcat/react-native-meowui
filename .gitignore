@@ -1,2 +1,35 @@
-/node_modules
-/dist
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build output
+dist/
+lib/
+*.tsbuildinfo
+
+# Packages
+*.tgz
+*.tar.gz
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editors
+.idea/
+.vscode/
+*.swp
+
+# Env
+.env
+.env.local
+
+# Test coverage
+coverage/
+
+# Expo
+.expo/
+example/ios/Pods/
+example/android/.gradle/
+example/android/app/build/

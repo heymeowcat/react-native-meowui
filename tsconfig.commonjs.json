@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "module": "CommonJS",
+    "moduleResolution": "Node10",
+    "verbatimModuleSyntax": false,
+    "paths": {
+      "react-native": ["./node_modules/react-native/types_generated/index.d.ts"]
+    },
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": true,
+    "outDir": "dist/cjs"
+  },
+  "include": ["src"],
+  "exclude": ["src/**/__tests__/**", "tests/**"]
+}
