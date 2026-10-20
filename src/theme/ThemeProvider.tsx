@@ -1,230 +1,126 @@
-/**
- * MeowUI Theme Provider
- * Context provider for theme management
- */
-
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useMemo,
-  useCallback,
-  ReactNode,
-} from "react";
-import { useColorScheme } from "react-native";
-import { lightColors, darkColors, gradients, type ColorScheme } from "./colors";
-import { typography, type TypographyVariants } from "./typography";
-import { spacing, borderRadius, elevation, componentSizes } from "./spacing";
 import {
-  springs,
-  easings,
-  timings,
-  durations,
-  pressAnimation,
-  overlayAnimation,
-} from "./animations";
-import { PortalHost } from "../components/Portal/PortalHost";
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
+import { useColorScheme } from 'react-native';
+import { PortalHost } from '../components/Portal/Portal';
+import { createTheme, darkTheme, lightTheme } from './theme';
+import type { Theme, ThemeMode, ThemeOverrides } from './types';
 
-// Theme type definition
-export interface MeowTheme {
-  mode: "light" | "dark";
-  colors: ColorScheme;
-  gradients: typeof gradients;
-  typography: TypographyVariants;
-  spacing: typeof spacing;
-  borderRadius: typeof borderRadius;
-  elevation: typeof elevation;
-  componentSizes: typeof componentSizes;
-  animations: {
-    springs: typeof springs;
-    easings: typeof easings;
-    timings: typeof timings;
-    durations: typeof durations;
-    pressAnimation: typeof pressAnimation;
-    overlayAnimation: typeof overlayAnimation;
-  };
-  components?: {
-    button?: {
-      variants?: {
-        filled?: Partial<import("react-native").ViewStyle> & {
-          textColor?: string;
-        };
-        outlined?: Partial<import("react-native").ViewStyle> & {
-          textColor?: string;
-        };
-        ghost?: Partial<import("react-native").ViewStyle> & {
-          textColor?: string;
-        };
-        gradient?: Partial<import("react-native").ViewStyle> & {
-          textColor?: string;
-        };
-      };
-      sizes?: Partial<typeof componentSizes.button>;
-    };
-    text?: {
-      variants?: Partial<TypographyVariants>;
-      defaultColor?: string;
-    };
-  };
+/**
+ * Controller surface for apps that switch color schemes at runtime.
+ * Kept in a separate context so components subscribed only to `useTheme`
+ * never re-render because of controller identity churn.
+ */
+export interface ThemeController {
+  theme: Theme;
+  /** The resolved mode actually in effect. */
+  mode: ThemeMode;
+  /** Switch to 'light' | 'dark', or back to 'system' to follow the OS. */
+  setMode: (mode: ThemeMode | 'system') => void;
+  /** Flip between light and dark. */
+  toggleMode: () => void;
 }
 
-// Theme context type
-interface ThemeContextValue {
-  theme: MeowTheme;
-  toggleTheme: () => void;
-  setThemeMode: (mode: "light" | "dark") => void;
-  isDark: boolean;
-}
+const ThemeContext = createContext<Theme | undefined>(undefined);
+const ThemeModeContext = createContext<ThemeController | undefined>(undefined);
 
-// Create context
-const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
-
-// Custom theme override type
-export interface ThemeOverrides {
-  colors?: Partial<ColorScheme>;
-  gradients?: Partial<typeof gradients>;
-  typography?: Partial<TypographyVariants>;
-  spacing?: Partial<typeof spacing>;
-  borderRadius?: Partial<typeof borderRadius>;
-  elevation?: Partial<typeof elevation>;
-  componentSizes?: Partial<typeof componentSizes>;
-  animations?: Partial<{
-    springs: typeof springs;
-    easings: typeof easings;
-    timings: typeof timings;
-    durations: typeof durations;
-    pressAnimation: typeof pressAnimation;
-    overlayAnimation: typeof overlayAnimation;
-  }>;
-  components?: MeowTheme["components"];
-}
-
-// Props for provider
-interface MeowProviderProps {
-  children: ReactNode;
-  theme?: "light" | "dark" | "system";
+export interface MeowProviderProps {
+  children?: ReactNode;
+  /**
+   * Uncontrolled mode preference: 'light', 'dark', or 'system' (default) to
+   * follow the OS. Omit to leave the controller managing it internally.
+   */
+  mode?: ThemeMode | 'system';
+  /** Partial token overrides merged onto the base theme for the resolved mode. */
   overrides?: ThemeOverrides;
+  /** A complete, pre-built theme. Takes precedence over `overrides`. */
+  theme?: Theme;
+  /** Called after the resolved mode changes. */
+  onModeChange?: (mode: ThemeMode) => void;
 }
 
-// Create theme helper
-export const createTheme = (overrides?: ThemeOverrides): ThemeOverrides => {
-  return overrides || {};
-};
-
-// Build full theme object
-const buildTheme = (
-  mode: "light" | "dark",
-  overrides?: ThemeOverrides
-): MeowTheme => {
-  const baseColors = mode === "dark" ? darkColors : lightColors;
-
-  return {
-    mode,
-    colors: {
-      ...baseColors,
-      ...overrides?.colors,
-    } as ColorScheme,
-    gradients: {
-      ...gradients,
-      ...overrides?.gradients,
-    },
-    typography: {
-      ...typography,
-      ...overrides?.typography,
-    },
-    spacing: {
-      ...spacing,
-      ...overrides?.spacing,
-    },
-    borderRadius: {
-      ...borderRadius,
-      ...overrides?.borderRadius,
-    },
-    elevation: {
-      ...elevation,
-      ...overrides?.elevation,
-    },
-    componentSizes: {
-      ...componentSizes,
-      ...overrides?.componentSizes,
-    },
-    animations: {
-      springs: overrides?.animations?.springs ?? springs,
-      easings: overrides?.animations?.easings ?? easings,
-      timings: overrides?.animations?.timings ?? timings,
-      durations: overrides?.animations?.durations ?? durations,
-      pressAnimation: overrides?.animations?.pressAnimation ?? pressAnimation,
-      overlayAnimation:
-        overrides?.animations?.overlayAnimation ?? overlayAnimation,
-    },
-    components: overrides?.components,
-  };
-};
-
-// Provider component
-export const MeowProvider: React.FC<MeowProviderProps> = ({
+/**
+ * Root provider for MeowUI. Supplies the theme to every component and manages
+ * light/dark mode — uncontrolled with `mode`, or fully controlled by passing a
+ * `theme` object.
+ */
+export function MeowProvider({
   children,
-  theme: themeProp = "system",
+  mode: modeProp,
   overrides,
-}) => {
-  const systemColorScheme = useColorScheme();
+  theme: themeProp,
+  onModeChange,
+}: MeowProviderProps) {
+  const systemScheme = useColorScheme();
+  const [preference, setPreference] = useState<ThemeMode | 'system'>(
+    modeProp ?? 'system'
+  );
 
-  // Determine initial mode
-  const getInitialMode = (): "light" | "dark" => {
-    if (themeProp === "system") {
-      return systemColorScheme === "dark" ? "dark" : "light";
-    }
-    return themeProp;
-  };
+  const preference_ = modeProp ?? preference;
 
-  const [mode, setMode] = useState<"light" | "dark">(getInitialMode);
+  const resolvedMode: ThemeMode =
+    preference_ === 'system' ? (systemScheme ?? 'light') : preference_;
 
-  // Toggle theme
-  const toggleTheme = useCallback(() => {
-    setMode((prev) => (prev === "dark" ? "light" : "dark"));
-  }, []);
+  const theme = useMemo<Theme>(() => {
+    if (themeProp) return themeProp;
+    if (!overrides) return resolvedMode === 'dark' ? darkTheme : lightTheme;
+    return createTheme({ mode: resolvedMode, ...overrides });
+  }, [themeProp, overrides, resolvedMode]);
 
-  // Set specific mode
-  const setThemeMode = useCallback((newMode: "light" | "dark") => {
-    setMode(newMode);
-  }, []);
+  const setMode = useCallback(
+    (next: ThemeMode | 'system') => {
+      setPreference(next);
+      if (next !== 'system') onModeChange?.(next);
+    },
+    [onModeChange]
+  );
 
-  // Build theme object
-  const theme = useMemo(() => buildTheme(mode, overrides), [mode, overrides]);
+  const toggleMode = useCallback(() => {
+    setPreference((prev) => {
+      const resolved = prev === 'system' ? (systemScheme ?? 'light') : prev;
+      const next: ThemeMode = resolved === 'dark' ? 'light' : 'dark';
+      onModeChange?.(next);
+      return next;
+    });
+  }, [systemScheme, onModeChange]);
 
-  // Context value
-  const value = useMemo<ThemeContextValue>(
-    () => ({
-      theme,
-      toggleTheme,
-      setThemeMode,
-      isDark: mode === "dark",
-    }),
-    [theme, toggleTheme, setThemeMode, mode]
+  const controller = useMemo<ThemeController>(
+    () => ({ theme, mode: resolvedMode, setMode, toggleMode }),
+    [theme, resolvedMode, setMode, toggleMode]
   );
 
   return (
-    <ThemeContext.Provider value={value}>
-      <PortalHost>{children}</PortalHost>
+    <ThemeContext.Provider value={theme}>
+      <ThemeModeContext.Provider value={controller}>
+        <PortalHost>{children}</PortalHost>
+      </ThemeModeContext.Provider>
     </ThemeContext.Provider>
   );
-};
+}
 
-// Hook to use theme
-export const useTheme = (): ThemeContextValue => {
-  const context = useContext(ThemeContext);
+/**
+ * Access the current theme. Safe to call without a provider — falls back to the
+ * reference light theme so components render correctly in isolation.
+ */
+export function useTheme(): Theme {
+  return useContext(ThemeContext) ?? lightTheme;
+}
 
-  if (!context) {
-    throw new Error("useTheme must be used within a MeowProvider");
+/**
+ * Access the theme controller (mode, setMode, toggleMode). Throws outside of a
+ * `MeowProvider`.
+ */
+export function useThemeController(): ThemeController {
+  const controller = useContext(ThemeModeContext);
+  if (!controller) {
+    throw new Error('useThemeController must be used within a <MeowProvider>');
   }
+  return controller;
+}
 
-  return context;
-};
-
-// Hook to get just the theme object
-export const useMeowTheme = (): MeowTheme => {
-  const { theme } = useTheme();
-  return theme;
-};
-
-export default MeowProvider;
+export { MeowProvider as ThemeProvider };
