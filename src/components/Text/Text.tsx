@@ -1,164 +1,98 @@
-/**
- * MeowUI Text Component
- * Typography component with gradient text support
- */
-
-import React, { memo } from 'react';
+import { memo } from 'react';
 import {
   Text as RNText,
-  StyleSheet,
-  StyleProp,
-  TextStyle,
+  type TextProps as RNTextProps,
+  type TextStyle,
 } from 'react-native';
-import MaskedView from '@react-native-masked-view/masked-view';
+import { useTheme, type ThemeFonts, type Tone, type TypographyVariantName } from '../../theme';
 
-import { useTheme } from '../../theme';
-import type { TypographyVariant } from '../../theme';
-
-export interface MeowTextProps {
-  children: React.ReactNode;
-  variant?: TypographyVariant;
-  color?: string;
-  gradient?: boolean;
-  gradientColors?: string[];
-  align?: 'left' | 'center' | 'right';
-  numberOfLines?: number;
-  style?: StyleProp<TextStyle>;
-}
-
-export const MeowText: React.FC<MeowTextProps> = ({
-  children,
-  variant = 'bodyMedium',
-  color,
-  gradient = false,
-  gradientColors,
-  align = 'left',
-  numberOfLines,
-  style,
-}) => {
-  const { theme } = useTheme();
-  
-  // Get typography style
-  const typographyOverride = theme.components?.text?.variants?.[variant];
-  const typographyStyle = { ...theme.typography[variant], ...(typographyOverride as TextStyle) };
-  
-  // Get text color
-  const textColor = color || theme.components?.text?.defaultColor || theme.colors.onBackground;
-  
-  // Combined style
-  const combinedStyle: TextStyle = {
-    ...typographyStyle,
-    color: textColor,
-    textAlign: align,
-  };
-  
-  // Gradient text
-  if (gradient || gradientColors) {
-    const colors = gradientColors || theme.gradients.primary;
-    
-    return (
-      <MaskedView
-        maskElement={
-          <RNText
-            style={[combinedStyle, styles.gradientMask, style]}
-            numberOfLines={numberOfLines}
-          >
-            {children}
-          </RNText>
-        }
-      >
-        <RNText
-          style={[
-            combinedStyle, // Apply typography and alignment
-            style, // Apply prop style
-            { color: theme.colors.primary }, // Fallback to primary color
-          ]}
-          numberOfLines={numberOfLines}
-        >
-          {children}
-        </RNText>
-      </MaskedView>
-    );
-  }
-  
-  return (
-    <RNText
-      style={[combinedStyle, style]}
-      numberOfLines={numberOfLines}
-    >
-      {children}
-    </RNText>
-  );
+/** Maps the typographic weights used in `theme.typography` to sans font slots. */
+const WEIGHT_FONT_KEY: Record<string, keyof ThemeFonts> = {
+  '400': 'regular',
+  '500': 'medium',
+  '600': 'semibold',
+  '700': 'semibold',
 };
 
-// Convenience components
-export const DisplayLarge: React.FC<Omit<MeowTextProps, 'variant'>> = (props) => (
-  <MeowText variant="displayLarge" {...props} />
-);
+/** Display variants resolve through dedicated slots before the sans fallback. */
+const DISPLAY_WEIGHT_KEY: Record<string, keyof ThemeFonts> = {
+  '400': 'displayRegular',
+  '500': 'displayMedium',
+  '600': 'displaySemibold',
+  '700': 'displaySemibold',
+};
 
-export const DisplayMedium: React.FC<Omit<MeowTextProps, 'variant'>> = (props) => (
-  <MeowText variant="displayMedium" {...props} />
-);
+/** Variants rendered in the metadata mono voice. */
+const MONO_VARIANTS: ReadonlySet<string> = new Set(['overline', 'mono']);
 
-export const DisplaySmall: React.FC<Omit<MeowTextProps, 'variant'>> = (props) => (
-  <MeowText variant="displaySmall" {...props} />
-);
+/** Variants rendered in the display voice. */
+const DISPLAY_VARIANTS: ReadonlySet<string> = new Set([
+  'display',
+  'headline',
+  'title',
+  'subtitle',
+]);
 
-export const HeadlineLarge: React.FC<Omit<MeowTextProps, 'variant'>> = (props) => (
-  <MeowText variant="headlineLarge" {...props} />
-);
+const TONE_COLOR_KEY: Record<Exclude<Tone, 'neutral'>, string> = {
+  primary: 'primary',
+  success: 'success',
+  warning: 'warning',
+  error: 'error',
+  info: 'info',
+};
 
-export const HeadlineMedium: React.FC<Omit<MeowTextProps, 'variant'>> = (props) => (
-  <MeowText variant="headlineMedium" {...props} />
-);
+export interface TextProps extends Omit<RNTextProps, 'ref'> {
+  /** Typographic variant from the theme's type scale. Defaults to `'body'`. */
+  variant?: TypographyVariantName;
+  /** Semantic tone for the text color. Neutral text uses `colors.onSurface`. */
+  tone?: Tone;
+  /** Explicit color — wins over `tone`. */
+  color?: string;
+  /** Text alignment. */
+  align?: TextStyle['textAlign'];
+  /** Override the variant's font weight. */
+  weight?: TextStyle['fontWeight'];
+}
 
-export const HeadlineSmall: React.FC<Omit<MeowTextProps, 'variant'>> = (props) => (
-  <MeowText variant="headlineSmall" {...props} />
-);
+/**
+ * The kit's typographic primitive. Everything that renders text goes through
+ * this so hierarchy, rhythm and font families stay consistent.
+ */
+export const Text = memo(function Text({
+  variant = 'body',
+  tone = 'neutral',
+  color,
+  align,
+  weight,
+  style,
+  ...rest
+}: TextProps) {
+  const { colors, typography, fonts } = useTheme();
 
-export const TitleLarge: React.FC<Omit<MeowTextProps, 'variant'>> = (props) => (
-  <MeowText variant="titleLarge" {...props} />
-);
+  const variantStyle = typography[variant];
+  const resolvedColor =
+    color ?? (tone !== 'neutral' ? colors[TONE_COLOR_KEY[tone] as keyof typeof colors] : colors.onSurface);
+  // Only override the variant's family when the app actually mapped one —
+  // an undefined fontFamily here would clobber the variant's own family.
+  // Mono variants resolve through the mono slots, display variants through the
+  // display slots (falling back to sans), and body through the weight slots.
+  const weightKey = String(weight ?? variantStyle.fontWeight ?? '400');
+  const sansKey = WEIGHT_FONT_KEY[weightKey] ?? 'regular';
+  const familyFromTheme = MONO_VARIANTS.has(variant)
+    ? fonts[weightKey === '400' ? 'monoRegular' : 'monoBold']
+    : DISPLAY_VARIANTS.has(variant)
+      ? (fonts[DISPLAY_WEIGHT_KEY[weightKey] ?? 'displaySemibold'] ?? fonts[sansKey])
+      : fonts[sansKey];
 
-export const TitleMedium: React.FC<Omit<MeowTextProps, 'variant'>> = (props) => (
-  <MeowText variant="titleMedium" {...props} />
-);
-
-export const TitleSmall: React.FC<Omit<MeowTextProps, 'variant'>> = (props) => (
-  <MeowText variant="titleSmall" {...props} />
-);
-
-export const BodyLarge: React.FC<Omit<MeowTextProps, 'variant'>> = (props) => (
-  <MeowText variant="bodyLarge" {...props} />
-);
-
-export const BodyMedium: React.FC<Omit<MeowTextProps, 'variant'>> = (props) => (
-  <MeowText variant="bodyMedium" {...props} />
-);
-
-export const BodySmall: React.FC<Omit<MeowTextProps, 'variant'>> = (props) => (
-  <MeowText variant="bodySmall" {...props} />
-);
-
-export const LabelLarge: React.FC<Omit<MeowTextProps, 'variant'>> = (props) => (
-  <MeowText variant="labelLarge" {...props} />
-);
-
-export const LabelMedium: React.FC<Omit<MeowTextProps, 'variant'>> = (props) => (
-  <MeowText variant="labelMedium" {...props} />
-);
-
-export const LabelSmall: React.FC<Omit<MeowTextProps, 'variant'>> = (props) => (
-  <MeowText variant="labelSmall" {...props} />
-);
-
-const styles = StyleSheet.create({
-  gradientMask: {
-    backgroundColor: 'transparent',
-  },
-  invisible: {
-    opacity: 0,
-  },
+  return (
+    <RNText
+      style={[
+        variantStyle,
+        { color: resolvedColor, textAlign: align, fontWeight: weight },
+        familyFromTheme ? { fontFamily: familyFromTheme } : null,
+        style,
+      ]}
+      {...rest}
+    />
+  );
 });
-
-export default memo(MeowText);

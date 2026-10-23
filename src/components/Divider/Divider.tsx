@@ -1,63 +1,44 @@
-/**
- * MeowUI Divider Component
- * Simple divider with gradient option
- */
-
-import React from 'react';
-import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
-
+import { memo } from 'react';
+import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useTheme } from '../../theme';
 
 export interface DividerProps {
-  gradient?: boolean;
-  gradientColors?: string[];
-  thickness?: number;
+  /** Vertical dividers span their container's height. */
   vertical?: boolean;
+  /** Indent the line from the leading edge (e.g. to align with list content). */
+  inset?: number;
+  /** Line color. Defaults to `colors.outline`. */
+  color?: string;
   style?: StyleProp<ViewStyle>;
 }
 
-export const Divider: React.FC<DividerProps> = ({
-  gradient = false,
-  gradientColors,
-  thickness = 1,
+/** A 1px hairline separator. The quiet workhorse of the kit's list layouts. */
+export const Divider = memo(function Divider({
   vertical = false,
+  inset = 0,
+  color,
   style,
-}) => {
-  const { theme } = useTheme();
-  
-  const baseStyle: ViewStyle = vertical
-    ? { width: thickness, height: '100%' }
-    : { height: thickness, width: '100%' };
-  
-  if (gradient) {
-    const colors = gradientColors || theme.gradients.primary;
-    
-    return (
-      <View
-        style={[
-          styles.line,
-          { backgroundColor: theme.colors.outline },
-          style,
-        ]}
-      />
-    );
-  }
-  
+}: DividerProps) {
+  const { colors } = useTheme();
+
   return (
     <View
       style={[
-        baseStyle,
-        { backgroundColor: theme.colors.outline },
+        vertical ? styles.vertical : styles.horizontal,
+        { marginStart: inset, backgroundColor: color ?? colors.outline },
         style,
       ]}
     />
   );
-};
-const styles = StyleSheet.create({
-  line: {
-    // Basic line style if needed, otherwise it relies on baseStyle. 
-    // Usually divider has background color.
-  },
 });
 
-export default Divider;
+const styles = StyleSheet.create({
+  horizontal: {
+    height: StyleSheet.hairlineWidth,
+    alignSelf: 'stretch',
+  },
+  vertical: {
+    width: StyleSheet.hairlineWidth,
+    alignSelf: 'stretch',
+  },
+});
