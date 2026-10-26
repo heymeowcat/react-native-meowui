@@ -1,228 +1,198 @@
-/**
- * MeowUI Button Component
- * A beautiful button with gradient support and smooth animations
- */
-
-import React, { useCallback, memo } from 'react';
+import { cloneElement, isValidElement, memo, type ReactElement, type ReactNode } from 'react';
 import {
+  ActivityIndicator as RNActivityIndicator,
   StyleSheet,
-  Text,
   View,
-  Pressable,
-  ActivityIndicator,
-  StyleProp,
-  ViewStyle,
-  TextStyle,
+  type StyleProp,
+  type TextStyle,
+  type ViewStyle,
 } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from 'react-native-reanimated';
-import { useTheme } from '../../theme';
-import { usePencilBurst } from '../../hooks/usePencilBurst';
-import { PencilBurst } from '../PencilBurst/PencilBurst';
+import { useTheme, type ThemeColors, type Tone } from '../../theme';
+import { Cast, usePressState } from '../../utils/cast';
+import { Pressable } from '../Pressable/Pressable';
+import { Text } from '../Text/Text';
 
-// Button variants
-export type ButtonVariant = 'filled' | 'outlined' | 'ghost' | 'gradient';
-export type ButtonSize = 'small' | 'medium' | 'large';
+export type ButtonVariant = 'solid' | 'tonal' | 'outline' | 'ghost';
+export type ButtonSize = 'sm' | 'md' | 'lg';
 
-export interface ButtonProps {
-  children: React.ReactNode;
-  onPress?: (event: import('react-native').GestureResponderEvent) => void;
-  variant?: ButtonVariant;
-  size?: ButtonSize;
-  gradient?: boolean;
-  gradientColors?: string[];
-  disabled?: boolean;
-  loading?: boolean;
-  leftIcon?: React.ReactNode;
-  rightIcon?: React.ReactNode;
-  fullWidth?: boolean;
-  style?: StyleProp<ViewStyle>;
-  textStyle?: StyleProp<TextStyle>;
-  /** Enable playful pencil burst effect on press */
-  enablePencilBurst?: boolean;
+/** Tones that make sense for an action; `neutral` actions use the ghost shape. */
+export type ButtonTone = Exclude<Tone, 'neutral'>;
+
+type ToneTokens = Record<'fill' | 'onFill' | 'muted' | 'onMuted', keyof ThemeColors>;
+
+const TONE_FILL: Record<ButtonTone, ToneTokens> = {
+  primary: { fill: 'primary', onFill: 'onPrimary', muted: 'primaryMuted', onMuted: 'onPrimaryMuted' },
+  success: { fill: 'success', onFill: 'onSuccess', muted: 'successMuted', onMuted: 'onSuccessMuted' },
+  warning: { fill: 'warning', onFill: 'onWarning', muted: 'warningMuted', onMuted: 'onWarningMuted' },
+  error: { fill: 'error', onFill: 'onError', muted: 'errorMuted', onMuted: 'onErrorMuted' },
+  info: { fill: 'info', onFill: 'onInfo', muted: 'infoMuted', onMuted: 'onInfoMuted' },
+};
+
+/** Icon nodes receive the resolved content color unless they set their own. */
+function renderSlot(node: ReactNode, color: string): ReactNode {
+  if (isValidElement(node)) {
+    const element = node as ReactElement<{ color?: string }>;
+    return element.props.color !== undefined ? element : cloneElement(element, { color });
+  }
+  return node;
 }
 
-const styles = StyleSheet.create({
-  container: {
-    overflow: 'visible',
-  },
-  fullWidth: {
-    width: '100%',
-  },
-  disabled: {
-    opacity: 0.5,
-  },
-  text: {
-    textAlign: 'center',
-  },
-});
+export interface ButtonProps {
+  /** Label text, or custom content for full control. */
+  children?: ReactNode;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  /** Semantic color family. Defaults to `'primary'` (blueberry). */
+  tone?: ButtonTone;
+  disabled?: boolean;
+  /** Shows a leading spinner and disables interaction. */
+  loading?: boolean;
+  /** Leading content — icon, avatar, anything. */
+  icon?: ReactNode;
+  /** Trailing content. */
+  trailingIcon?: ReactNode;
+  /** Stretch to the parent's width. */
+  fullWidth?: boolean;
+  onPress?: () => void;
+  onLongPress?: () => void;
+  /** Accessibility label. Falls back to the string children. */
+  accessibilityLabel?: string;
+  testID?: string;
+  style?: StyleProp<ViewStyle>;
+  /** Style overrides for the label (ignored when `children` is custom content). */
+  labelStyle?: StyleProp<TextStyle>;
+}
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-
-export const Button: React.FC<ButtonProps> = ({
+/**
+ * The kit's primary action — a solid blueberry key, a milk outline or a
+ * periwinkle tonal fill, each resting on a 2px warm cast that collapses as
+ * the label presses 1px into it. Variants: `solid`, `tonal`, `outline`,
+ * `ghost`.
+ */
+export const Button = memo(function Button({
   children,
-
-  onPress,
-  variant = 'filled',
-  size = 'medium',
-  gradient = false,
-  gradientColors,
+  variant = 'solid',
+  size = 'md',
+  tone = 'primary',
   disabled = false,
   loading = false,
-  leftIcon,
-  rightIcon,
+  icon,
+  trailingIcon,
   fullWidth = false,
+  onPress,
+  onLongPress,
+  accessibilityLabel,
+  testID,
   style,
-  textStyle,
-  enablePencilBurst = true,
-}) => {
-  const { theme } = useTheme();
-  const scale = useSharedValue(1);
-  const { trigger, strokes, progress } = usePencilBurst({
-    strokeCount: 8,
-    duration: 350,
-    maxLength: 20,
-    minLength: 10,
-  });
-  
-  // Animation handlers - cleaner scale animation
-  const handlePressIn = useCallback(() => {
-    scale.value = withSpring(0.96, theme.animations.springs.snappy);
-    if (enablePencilBurst && !disabled && !loading) {
-      trigger();
-    }
-  }, [scale, theme, enablePencilBurst, disabled, loading, trigger]);
-  
-  const handlePressOut = useCallback(() => {
-    scale.value = withSpring(1, theme.animations.springs.snappy);
-  }, [scale, theme]);
-  
-  // Animated style
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-  
-  const sizeStyles = (theme.components?.button?.sizes?.[size] as {
-    height: number;
-    paddingHorizontal: number;
-  }) || theme.componentSizes.button[size];
-  
-  // Get variant styles
-  const getVariantStyles = (): ViewStyle => {
-    const baseStyle: ViewStyle = {
-      height: sizeStyles.height,
-      paddingHorizontal: sizeStyles.paddingHorizontal,
-      borderRadius: theme.borderRadius.full,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: theme.spacing[2],
-      borderWidth: 2,
-      borderColor: theme.colors.outline,
-    };
-    
-    const override = theme.components?.button?.variants?.[variant];
-    switch (variant) {
-      case 'filled':
-      case 'gradient':
-        return {
-          ...baseStyle,
-          backgroundColor: (override?.backgroundColor as string) || theme.colors.primary,
-          borderColor: (override?.borderColor as string) || theme.colors.outline,
-          ...theme.elevation[2], 
-          shadowColor: theme.colors.shadow,
-        };
-      case 'outlined':
-        return {
-          ...baseStyle,
-          backgroundColor: theme.colors.surface,
-          borderColor: (override?.borderColor as string) || theme.colors.outline,
-          ...theme.elevation[0],
-        };
-      case 'ghost':
-        return {
-          ...baseStyle,
-          backgroundColor: 'transparent',
-          borderWidth: 0,
-          ...theme.elevation[0],
-        };
-      default:
-        return baseStyle;
-    }
-  };
-  
-  // Get text color
-  const getTextColor = (): string => {
-    if (disabled) return theme.colors.onSurfaceVariant;
-    
-    switch (variant) {
-      case 'filled':
-      case 'gradient':
-        return (theme.components?.button?.variants?.[variant]?.textColor as string) || theme.colors.onPrimary;
-      case 'outlined':
-      case 'ghost':
-        return (theme.components?.button?.variants?.[variant]?.textColor as string) || theme.colors.onBackground;
-      default:
-        return theme.colors.onPrimary;
-    }
-  };
-  
-  // Render content
-  const renderContent = () => (
-    <>
-      {loading ? (
-        <ActivityIndicator color={getTextColor()} size="small" />
-      ) : (
-        <>
-          {leftIcon}
-          {typeof children === 'string' ? (
-            <Text
-              style={[
-                styles.text,
-                {
-                  color: getTextColor(),
-                  fontSize: size === 'medium' ? 14 : size === 'small' ? 12 : 16,
-                  fontWeight: '700',
-                },
-                textStyle,
-              ]}
-            >
-              {children}
-            </Text>
-          ) : (
-            children
-          )}
-          {rightIcon}
-        </>
-      )}
-    </>
-  );
+  labelStyle,
+}: ButtonProps) {
+  const { colors, spacing, metrics, radii } = useTheme();
+  const [pressed, pressHandlers] = usePressState();
+  const tokens = TONE_FILL[tone];
+
+  const inactive = disabled || loading;
+  const height = metrics.control[size];
+  const paddingX = size === 'sm' ? spacing[3] : spacing[4];
+
+  const solidFill = variant === 'solid';
+  const tonalFill = variant === 'tonal';
+
+  const backgroundColor = solidFill
+    ? inactive
+      ? colors.surfaceMuted
+      : colors[tokens.fill]
+    : tonalFill
+      ? inactive
+        ? colors.surfaceMuted
+        : colors[tokens.muted]
+      : variant === 'outline'
+        ? colors.surface
+        : 'transparent';
+
+  const contentColor = inactive
+    ? colors.onSurfaceSubtle
+    : solidFill
+      ? colors[tokens.onFill]
+      : tonalFill
+        ? colors[tokens.onMuted]
+        : variant === 'outline'
+          ? colors.onSurface
+          : colors.onSurfaceMuted;
+
+  // Framed variants rest on a soft cast; ghost keys stay flat.
+  const cast = solidFill || tonalFill || variant === 'outline' ? (inactive || pressed ? 0 : 2) : 0;
+  const borderColor = solidFill
+    ? backgroundColor
+    : tonalFill
+      ? colors[tokens.muted]
+      : variant === 'outline'
+        ? colors.outlineStrong
+        : 'transparent';
 
   return (
-    <AnimatedPressable
-      onPress={onPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      disabled={disabled || loading}
+    <Cast
+      level={cast}
+      color={colors.shadow}
+      radius={radii.lg}
       style={[
-        styles.container,
-        animatedStyle,
-        getVariantStyles(),
-        disabled && styles.disabled,
+        cast > 0 && { marginRight: cast, marginBottom: cast },
         fullWidth && styles.fullWidth,
         style,
       ]}
     >
-      {renderContent()}
-      {enablePencilBurst && strokes.length > 0 && (
-        <PencilBurst strokes={strokes} progress={progress} size={180} />
-      )}
-    </AnimatedPressable>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel ?? (typeof children === 'string' ? children : undefined)}
+        accessibilityState={{ disabled, busy: loading }}
+        disabled={inactive}
+        onPress={onPress}
+        onLongPress={onLongPress}
+        radius="lg"
+        tint={variant === 'ghost' && !inactive ? colors.surfaceMuted : undefined}
+        disabledOpacity={1}
+        style={[
+          styles.base,
+          { height, paddingHorizontal: paddingX, backgroundColor, borderColor, borderRadius: radii.lg },
+          pressed && !flatVariant(variant) && styles.pressedShift,
+        ]}
+        {...pressHandlers}
+        testID={testID}
+      >
+        <View style={styles.contentRow} pointerEvents="none">
+          {loading ? <RNActivityIndicator size="small" color={contentColor} /> : renderSlot(icon, contentColor)}
+          {children != null && (
+            <Text weight="600" style={[{ color: contentColor, fontSize: size === 'sm' ? 12 : 13, lineHeight: 18 }, labelStyle]} numberOfLines={1}>
+              {children}
+            </Text>
+          )}
+          {renderSlot(trailingIcon, contentColor)}
+        </View>
+      </Pressable>
+    </Cast>
   );
-};
+});
 
-export default memo(Button);
+function flatVariant(variant: ButtonVariant): boolean {
+  return variant === 'ghost';
+}
 
+const styles = StyleSheet.create({
+  base: {
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  fullWidth: {
+    alignSelf: 'stretch',
+  },
+  contentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+  },
+  pressedShift: {
+    transform: [{ translateY: 1 }, { scale: 0.99 }],
+  },
+});

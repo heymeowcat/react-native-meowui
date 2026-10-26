@@ -1,186 +1,180 @@
-/**
- * MeowUI ToggleButton
- */
-
-import React, { createContext, useContext } from 'react';
 import {
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-  StyleProp,
-  ViewStyle,
-} from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from 'react-native-reanimated';
+  createContext,
+  cloneElement,
+  isValidElement,
+  memo,
+  useContext,
+  type ReactElement,
+  type ReactNode,
+} from 'react';
+import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useTheme } from '../../theme';
+import { Cast } from '../../utils/cast';
+import { Pressable } from '../Pressable/Pressable';
 
-export type ToggleButtonStatus = 'checked' | 'unchecked';
-
-export interface ToggleButtonProps {
-  icon?: React.ReactNode;
-  value?: string;
-  status?: ToggleButtonStatus;
-  onPress?: () => void;
-  disabled?: boolean;
-  style?: StyleProp<ViewStyle>;
+interface ToggleGroupValue {
+  value: string | null;
+  onValueChange: ((value: string) => void) | null;
 }
 
-interface ToggleButtonGroupContextValue {
-  value: string | string[];
-  onValueChange: (value: string) => void;
-}
-
-const ToggleButtonGroupContext = createContext<ToggleButtonGroupContextValue | null>(null);
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-
-export const ToggleButton: React.FC<ToggleButtonProps> & {
-  Group: typeof ToggleButtonGroup;
-} = ({
-  icon,
-  value,
-  status: statusProp,
-  onPress,
-  disabled = false,
-  style,
-}) => {
-  const { theme } = useTheme();
-  const groupContext = useContext(ToggleButtonGroupContext);
-  const scale = useSharedValue(1);
-  
-  // Determine status from group or prop
-  const isChecked = groupContext
-    ? Array.isArray(groupContext.value)
-      ? groupContext.value.includes(value || '')
-      : groupContext.value === value
-    : statusProp === 'checked';
-  
-  const handlePress = () => {
-    if (disabled) return;
-    
-    if (groupContext && value) {
-      groupContext.onValueChange(value);
-    } else if (onPress) {
-      onPress();
-    }
-  };
-  
-  const handlePressIn = () => {
-    scale.value = withSpring(0.92, { damping: 15 });
-  };
-  
-  const handlePressOut = () => {
-    scale.value = withSpring(1, { damping: 15 });
-  };
-  
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-  
-  return (
-    <AnimatedPressable
-      onPress={handlePress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      disabled={disabled}
-      style={[
-        styles.button,
-        {
-          backgroundColor: isChecked ? theme.colors.primary : theme.colors.surface,
-          borderWidth: 2,
-          borderColor: theme.colors.outline,
-          borderRadius: theme.borderRadius.md,
-          ...theme.elevation[isChecked ? 2 : 0],
-        },
-        disabled && styles.disabled,
-        animatedStyle,
-        style,
-      ]}
-    >
-      {icon && (
-        <View style={{ opacity: isChecked ? 1 : 0.6 }}>
-          {React.isValidElement(icon)
-            ? React.cloneElement(icon as React.ReactElement<any>, {
-                color: isChecked ? theme.colors.onPrimary : theme.colors.onSurface,
-              })
-            : icon}
-        </View>
-      )}
-    </AnimatedPressable>
-  );
-};
+const ToggleGroupContext = createContext<ToggleGroupValue>({
+  value: null,
+  onValueChange: null,
+});
 
 export interface ToggleButtonGroupProps {
-  value: string | string[];
-  onValueChange: (value: string | string[]) => void;
-  children: React.ReactNode;
-  /** Allow multiple selections */
-  multiSelect?: boolean;
+  /** The selected item's value, or null when nothing is selected. */
+  value: string | null;
+  onValueChange: (value: string) => void;
+  children: ReactNode;
+  accessibilityLabel?: string;
   style?: StyleProp<ViewStyle>;
 }
 
-const ToggleButtonGroup: React.FC<ToggleButtonGroupProps> = ({
+/** Bounded group of `ToggleButton`s — exactly one item can be selected. */
+export function ToggleButtonGroup({
   value,
   onValueChange,
   children,
-  multiSelect = false,
+  accessibilityLabel,
   style,
-}) => {
-  const { theme } = useTheme();
-  
-  const handleValueChange = (newValue: string) => {
-    if (multiSelect) {
-      const currentValues = Array.isArray(value) ? value : [value];
-      if (currentValues.includes(newValue)) {
-        onValueChange(currentValues.filter(v => v !== newValue));
-      } else {
-        onValueChange([...currentValues, newValue]);
-      }
-    } else {
-      onValueChange(newValue);
-    }
-  };
-  
+}: ToggleButtonGroupProps) {
+  const { colors, radii } = useTheme();
+  const ctx = { value, onValueChange };
   return (
-    <ToggleButtonGroupContext.Provider value={{ value, onValueChange: handleValueChange }}>
+    <ToggleGroupContext.Provider value={ctx}>
       <View
+        accessibilityRole="radiogroup"
+        accessibilityLabel={accessibilityLabel}
         style={[
-          styles.group,
+          styles.track,
           {
-            borderWidth: 2,
-            borderColor: theme.colors.outline,
-            borderRadius: theme.borderRadius.md,
-            backgroundColor: theme.colors.surfaceVariant,
+            backgroundColor: colors.surfaceMuted,
+            borderColor: colors.outline,
+            borderRadius: radii.xl,
           },
           style,
         ]}
       >
         {children}
       </View>
-    </ToggleButtonGroupContext.Provider>
+    </ToggleGroupContext.Provider>
   );
-};
+}
 
-ToggleButton.Group = ToggleButtonGroup;
+export interface ToggleButtonProps {
+  /** Icon content; resolved `color` is injected when supported. */
+  icon: ReactNode;
+  /** Group item identity. Standalone buttons ignore this. */
+  value?: string;
+  /** Standalone mode: boolean state instead of group membership. */
+  selected?: boolean;
+  onValueChange?: (selected: boolean) => void;
+  disabled?: boolean;
+  accessibilityLabel?: string;
+  style?: StyleProp<ViewStyle>;
+  testID?: string;
+}
 
-const styles = StyleSheet.create({
-  button: {
-    width: 48,
-    height: 48,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  disabled: {
-    opacity: 0.5,
-  },
-  group: {
-    flexDirection: 'row',
-    overflow: 'hidden',
-  },
+/**
+ * An icon toggle. Inside a `ToggleButtonGroup` it behaves like a radio key
+ * lifted on milk paper; on its own it flips a boolean with a blueberry tonal
+ * fill. Selection is quiet, never colorful.
+ */
+export const ToggleButton = memo(function ToggleButton({
+  icon,
+  value,
+  selected: selectedProp,
+  onValueChange,
+  disabled = false,
+  accessibilityLabel,
+  style,
+  testID,
+}: ToggleButtonProps) {
+  const { colors, radii } = useTheme();
+  const group = useContext(ToggleGroupContext);
+
+  const inGroup = value !== undefined && group.onValueChange !== null;
+  const isSelected = inGroup ? group.value === value : (selectedProp ?? false);
+
+  const handlePress = () => {
+    if (inGroup) group.onValueChange?.(value as string);
+    else onValueChange?.(!isSelected);
+  };
+
+  const backgroundColor = disabled
+    ? 'transparent'
+    : isSelected
+      ? inGroup
+        ? colors.surface
+        : colors.primaryMuted
+      : 'transparent';
+  const contentColor = disabled
+    ? colors.onSurfaceSubtle
+    : isSelected
+      ? inGroup
+        ? colors.onSurface
+        : colors.onPrimaryMuted
+      : colors.onSurfaceMuted;
+
+  const renderedIcon =
+    isValidElement(icon)
+      ? cloneElement(icon as ReactElement<{ color?: string }>, { color: contentColor })
+      : icon;
+
+  const cell = (
+    <Pressable
+      accessibilityRole={inGroup ? 'radio' : 'button'}
+      accessibilityState={{ disabled, checked: inGroup ? isSelected : undefined, selected: !inGroup ? isSelected : undefined }}
+      accessibilityLabel={accessibilityLabel}
+      disabled={disabled}
+      onPress={handlePress}
+      radius={inGroup ? 'md' : 'lg'}
+      pressedOpacity={0.8}
+      tint={colors.surfaceMuted}
+      disabledOpacity={1}
+      style={[
+        styles.cell,
+        {
+          backgroundColor,
+          borderRadius: inGroup ? radii.md : radii.lg,
+          borderWidth: inGroup ? 1 : 0,
+          borderColor: isSelected ? colors.outlineStrong : 'transparent',
+        },
+        style,
+      ]}
+      testID={testID}
+    >
+      {renderedIcon}
+    </Pressable>
+  );
+
+  if (!inGroup) return cell;
+
+  return (
+    <Cast
+      level={isSelected && !disabled ? 1 : 0}
+      color={colors.shadow}
+      radius={radii.md}
+    >
+      {cell}
+    </Cast>
+  );
 });
 
-export default ToggleButton;
+const styles = StyleSheet.create({
+  track: {
+    flexDirection: 'row',
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 3,
+    gap: 2,
+  },
+  cell: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

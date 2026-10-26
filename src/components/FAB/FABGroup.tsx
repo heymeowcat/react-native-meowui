@@ -1,235 +1,227 @@
-/**
- * MeowUI FABGroup
- */
-
-import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  Pressable,
+  cloneElement,
+  isValidElement,
+  memo,
+  useEffect,
+  useRef,
+  useState,
+  type ReactElement,
+  type ReactNode,
+} from 'react';
+import {
+  Animated,
+  Easing,
+  Pressable as RNPressable,
   StyleSheet,
-  StyleProp,
-  ViewStyle,
+  View,
+  type StyleProp,
+  type ViewStyle,
 } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-  withDelay,
-  interpolate,
-  runOnJS,
-} from 'react-native-reanimated';
 import { useTheme } from '../../theme';
+import { Cast, usePressState } from '../../utils/cast';
 import { Portal } from '../Portal/Portal';
+import { Pressable } from '../Pressable/Pressable';
+import { Text } from '../Text/Text';
+import { FAB, type FABProps, type FABSize } from './FAB';
 
 export interface FABGroupAction {
-  icon: React.ReactNode;
-  label?: string;
-  onPress: () => void;
-  color?: string;
-  small?: boolean;
+  /** Icon content for the action button. */
+  icon: ReactNode;
+  /** Label shown beside the action; also used for accessibility. */
+  label: string;
+  onPress?: () => void;
+  disabled?: boolean;
+  testID?: string;
 }
 
 export interface FABGroupProps {
-  icon: React.ReactNode;
-  openIcon?: React.ReactNode;
+  /** Icon shown on the anchor FAB (usually a plus). */
+  icon: FABProps['icon'];
+  /** Extended-FAB label for the anchor; omit for the icon-only shape. */
+  label?: string;
+  size?: FABSize;
   actions: FABGroupAction[];
-  visible?: boolean;
+  /** Distance from the bottom edge of the viewport. Defaults to `16`. */
+  bottom?: number;
+  /** Distance from the right edge of the viewport. Defaults to `16`. */
+  right?: number;
+  /** Control visibility externally; unmanaged when omitted. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   style?: StyleProp<ViewStyle>;
+  testID?: string;
 }
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-
-export const FABGroup: React.FC<FABGroupProps> = ({
+/**
+ * A FAB that expands into a labeled action stack with a light scrim behind.
+ * Actions are round milk-paper keys (40px, 1px outlineStrong border, 2px warm
+ * cast) with DM Sans labels in espresso chips. Renders through a `Portal`, so
+ * it can be mounted anywhere and always floats above app content.
+ */
+export const FABGroup = memo(function FABGroup({
   icon,
-  openIcon,
+  label,
+  size = 'md',
   actions,
-  visible = true,
+  bottom = 16,
+  right = 16,
+  open: openProp,
+  onOpenChange,
   style,
-}) => {
-  const { theme } = useTheme();
-  const [open, setOpen] = useState(false);
-  
-  const progress = useSharedValue(0);
-  const mainScale = useSharedValue(1);
-  const rotation = useSharedValue(0);
-  
-  const toggleOpen = () => {
-    if (open) {
-      progress.value = withSpring(0, theme.animations.springs.smooth);
-      rotation.value = withSpring(0, theme.animations.springs.smooth);
-    } else {
-      progress.value = withSpring(1, theme.animations.springs.smooth);
-      rotation.value = withSpring(45, theme.animations.springs.smooth);
-    }
-    setOpen(!open);
+  testID,
+}: FABGroupProps) {
+  const { colors, motion, spacing, zIndex } = useTheme();
+  const [openState, setOpenState] = useState(false);
+  const open = openProp ?? openState;
+
+  const progress = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(progress, {
+      toValue: open ? 1 : 0,
+      duration: motion.durationBase,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [open, progress, motion.durationBase]);
+
+  const setOpen = (next: boolean) => {
+    setOpenState(next);
+    onOpenChange?.(next);
   };
-  
-  const handleMainPressIn = () => {
-    mainScale.value = withSpring(0.92, { damping: 15 });
-  };
-  
-  const handleMainPressOut = () => {
-    mainScale.value = withSpring(1, { damping: 15 });
-  };
-  
-  const mainAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: mainScale.value },
-      { rotate: `${rotation.value}deg` },
-    ],
-  }));
-  
-  const backdropStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(progress.value, [0, 1], [0, 0.4]),
-    pointerEvents: progress.value > 0.5 ? 'auto' : 'none',
-  }));
-  
-  if (!visible) return null;
-  
+
+  const fade = progress.interpolate({ inputRange: [0, 1], outputRange: [0, 1] });
+  const stackTranslate = progress.interpolate({ inputRange: [0, 1], outputRange: [12, 0] });
+  const iconRotate = progress.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '45deg'] });
+
   return (
-    <Portal>
-      {/* Backdrop */}
-      <Animated.View style={[styles.backdrop, backdropStyle]}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={toggleOpen} />
-      </Animated.View>
-      
-      <View style={[styles.container, style]} pointerEvents="box-none">
-        {/* Action buttons */}
-        {actions.map((action, index) => {
-          const actionStyle = useAnimatedStyle(() => {
-            const baseTranslateY = -70 * (index + 1);
-            const translateY = interpolate(progress.value, [0, 1], [0, baseTranslateY]);
-            const scale = interpolate(progress.value, [0, 0.5, 1], [0, 0.5, 1]);
-            const opacity = interpolate(progress.value, [0, 0.5, 1], [0, 0, 1]);
-            
-            return {
-              transform: [{ translateY }, { scale }],
-              opacity,
-            };
-          });
-          
-          return (
-            <Animated.View key={index} style={[styles.actionContainer, actionStyle]}>
-              {action.label && (
-                <View
-                  style={[
-                    styles.label,
-                    {
-                      backgroundColor: theme.colors.surface,
-                      borderWidth: 2,
-                      borderColor: theme.colors.outline,
-                      borderRadius: theme.borderRadius.md,
-                      ...theme.elevation[2],
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.labelText,
-                      {
-                        color: theme.colors.onSurface,
-                        ...theme.typography.labelMedium,
-                      },
-                    ]}
-                  >
-                    {action.label}
-                  </Text>
-                </View>
-              )}
-              <Pressable
-                onPress={() => {
-                  action.onPress();
-                  toggleOpen();
-                }}
-                style={[
-                  styles.actionButton,
-                  {
-                    backgroundColor: action.color || theme.colors.secondary,
-                    borderWidth: 2,
-                    borderColor: theme.colors.outline,
-                    ...theme.elevation[3],
-                  },
-                  action.small && styles.actionButtonSmall,
-                ]}
-              >
-                {action.icon}
-              </Pressable>
-            </Animated.View>
-          );
-        })}
-        
-        {/* Main FAB */}
-        <AnimatedPressable
-          onPress={toggleOpen}
-          onPressIn={handleMainPressIn}
-          onPressOut={handleMainPressOut}
-          style={[
-            styles.mainFab,
-            {
-              backgroundColor: theme.colors.primary,
-              borderWidth: 2,
-              borderColor: theme.colors.outline,
-              ...theme.elevation[4],
-            },
-            mainAnimatedStyle,
-          ]}
+    <Portal zIndex={zIndex.menu}>
+      <View pointerEvents="box-none" style={[StyleSheet.absoluteFill, style]} testID={testID}>
+        <Animated.View
+          pointerEvents={open ? 'auto' : 'none'}
+          style={[StyleSheet.absoluteFill, { opacity: fade, backgroundColor: colors.scrim }]}
         >
-          {open && openIcon ? openIcon : icon}
-        </AnimatedPressable>
+          <RNPressable
+            accessibilityLabel="Close actions"
+            accessibilityRole="button"
+            onPress={() => setOpen(false)}
+            style={StyleSheet.absoluteFill}
+          />
+        </Animated.View>
+
+        <View
+          pointerEvents="box-none"
+          style={[styles.stack, { bottom, right, gap: spacing[3] }]}
+        >
+          <Animated.View
+            pointerEvents={open ? 'box-none' : 'none'}
+            style={[
+              styles.actionStack,
+              { gap: spacing[3], opacity: fade, transform: [{ translateY: stackTranslate }] },
+            ]}
+          >
+            {actions.map((action) => (
+              <ActionEntry key={action.label} action={action} />
+            ))}
+          </Animated.View>
+
+          <FAB
+            icon={
+              <Animated.View style={{ transform: [{ rotate: iconRotate }] }}>
+                {icon}
+              </Animated.View>
+            }
+            label={label}
+            size={size}
+            onPress={() => setOpen(!open)}
+            accessibilityLabel={open ? 'Collapse actions' : 'Expand actions'}
+            accessibilityState={{ expanded: open }}
+          />
+        </View>
       </View>
     </Portal>
   );
-};
+});
+
+/** One stacked action: a DM Sans label chip beside a round milk-paper key. */
+const ActionEntry = memo(function ActionEntry({ action }: { action: FABGroupAction }) {
+  const { colors } = useTheme();
+  const [pressed, pressHandlers] = usePressState();
+  const disabled = action.disabled ?? false;
+
+  const cast = disabled || pressed ? 0 : 2;
+  const contentColor = disabled ? colors.onSurfaceSubtle : colors.onSurface;
+  const icon = isValidElement(action.icon)
+    ? cloneElement(action.icon as ReactElement<{ color?: string }>, { color: contentColor })
+    : action.icon;
+
+  return (
+    <View style={styles.actionRow}>
+      <View style={[styles.label, { backgroundColor: colors.inverseSurface }]}>
+        <Text variant="label" style={{ color: colors.inverseOnSurface }} numberOfLines={1}>
+          {action.label}
+        </Text>
+      </View>
+      <Cast
+        level={cast}
+        color={colors.shadow}
+        radius={9999}
+        style={cast > 0 ? { marginRight: cast, marginBottom: cast } : undefined}
+      >
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={action.label}
+          disabled={disabled}
+          onPress={action.onPress}
+          radius="full"
+          tint={colors.surfaceMuted}
+          disabledOpacity={1}
+          style={[
+            styles.actionButton,
+            {
+              backgroundColor: disabled ? colors.surfaceMuted : colors.surface,
+              borderColor: disabled ? colors.outline : colors.outlineStrong,
+            },
+            !disabled && pressed && styles.pressedShift,
+          ]}
+          {...pressHandlers}
+          testID={action.testID}
+        >
+          {icon}
+        </Pressable>
+      </Cast>
+    </View>
+  );
+});
 
 const styles = StyleSheet.create({
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#000',
-    zIndex: 999,
-  },
-  container: {
+  stack: {
     position: 'absolute',
-    right: 20,
-    bottom: 20,
-    alignItems: 'center',
-    zIndex: 1000,
+    alignItems: 'flex-end',
   },
-  actionContainer: {
-    position: 'absolute',
-    bottom: 0,
-    right: 4,
+  actionStack: {
+    alignItems: 'flex-end',
+  },
+  actionRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 12,
   },
   label: {
-    marginRight: 12,
-    paddingVertical: 6,
     paddingHorizontal: 12,
-  },
-  labelText: {
-    fontWeight: '600',
+    paddingVertical: 6,
+    borderRadius: 9999,
   },
   actionButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  actionButtonSmall: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-  },
-  mainFab: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+  },
+  pressedShift: {
+    transform: [{ translateY: 1 }, { scale: 0.985 }],
   },
 });
 
-export default FABGroup;
+export type { FABSize };

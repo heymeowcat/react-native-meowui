@@ -1,131 +1,163 @@
-/**
- * MeowUI Searchbar Component
- * High-contrast search input with thick borders and hard shadows
- */
-
-import React, { useState, useRef } from 'react';
+import { memo, type ReactNode } from 'react';
 import {
-  View,
-  TextInput,
   StyleSheet,
-  Pressable,
-  StyleProp,
-  ViewStyle,
-  TextInputProps,
-  Text,
+  TextInput,
+  View,
+  type StyleProp,
+  type ViewStyle,
 } from 'react-native';
 import { useTheme } from '../../theme';
+import { Pressable } from '../Pressable/Pressable';
 
-export interface SearchbarProps extends Omit<TextInputProps, 'style'> {
+export interface SearchbarProps {
   value: string;
   onChangeText: (text: string) => void;
-  onIconPress?: () => void;
-  onClearIconPress?: () => void;
   placeholder?: string;
-  icon?: any; // name of icon
-  clearIcon?: any;
-  loading?: boolean;
+  disabled?: boolean;
+  /** When set (and the field has text), shows the clear affordance. */
+  onClear?: () => void;
+  /** Leading content; defaults to the built-in magnifier glyph. */
+  leading?: ReactNode;
+  accessibilityLabel?: string;
   style?: StyleProp<ViewStyle>;
-  inputStyle?: StyleProp<ViewStyle>;
+  testID?: string;
 }
 
-export const Searchbar: React.FC<SearchbarProps> = ({
+/**
+ * A milk-paper search field with an outlineStrong border and 12px corners —
+ * the same instrument grammar as `TextInput`, with a stamped magnifier and
+ * clear affordance.
+ */
+export const Searchbar = memo(function Searchbar({
   value,
   onChangeText,
-  onIconPress,
-  onClearIconPress,
-  placeholder = 'Search...',
-  icon = 'search',
-  clearIcon = 'close-circle',
-  loading = false,
+  placeholder,
+  disabled = false,
+  onClear,
+  leading,
+  accessibilityLabel,
   style,
-  inputStyle,
-  ...rest
-}) => {
-  const { theme } = useTheme();
-  const inputRef = useRef<TextInput>(null);
-  const [isFocused, setIsFocused] = useState(false);
-
-  const handleFocus = () => setIsFocused(true);
-  const handleBlur = () => setIsFocused(false);
-  
-  const handleClear = () => {
-    onChangeText('');
-    onClearIconPress?.();
-  };
+  testID,
+}: SearchbarProps) {
+  const { colors, fonts, metrics, radii } = useTheme();
+  const showClear = onClear !== undefined && value.length > 0 && !disabled;
 
   return (
     <View
       style={[
-        styles.container,
+        styles.field,
         {
-          backgroundColor: theme.colors.surface,
-          borderColor: isFocused ? theme.colors.primary : theme.colors.outline,
-          borderRadius: theme.borderRadius.full,
-          borderWidth: 2,
-          // MeowUI Hard Shadow
-          shadowColor: '#000',
-          shadowOffset: { width: 4, height: 4 }, // Hard offset
-          shadowOpacity: 1,
-          shadowRadius: 0,
-          elevation: 4,
+          height: metrics.input.md,
+          backgroundColor: disabled ? colors.surfaceMuted : colors.surface,
+          borderColor: disabled ? colors.outline : colors.outlineStrong,
+          borderRadius: radii.lg,
         },
         style,
       ]}
     >
-      <Pressable 
-        onPress={onIconPress || (() => inputRef.current?.focus())}
-        style={styles.iconButton}
-      >
-         <Text style={{ fontSize: 20, fontWeight: '900' }}>🔍</Text>
-      </Pressable>
-
+      {leading !== undefined ? (
+        leading
+      ) : (
+        <MagnifierGlyph color={disabled ? colors.onSurfaceSubtle : colors.onSurfaceMuted} />
+      )}
       <TextInput
-        ref={inputRef}
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor={theme.colors.onSurfaceVariant}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
         style={[
           styles.input,
           {
-            color: theme.colors.onSurface,
-            ...theme.typography.bodyLarge,
+            color: disabled ? colors.onSurfaceSubtle : colors.onSurface,
+            fontFamily: fonts.regular,
           },
-          inputStyle,
         ]}
-        {...rest}
+        placeholderTextColor={disabled ? colors.onSurfaceSubtle : colors.onSurfaceMuted}
+        placeholder={placeholder}
+        value={value}
+        onChangeText={onChangeText}
+        editable={!disabled}
+        accessibilityLabel={accessibilityLabel}
+        underlineColorAndroid="transparent"
+        testID={testID}
       />
-
-      {value ? (
-        <Pressable onPress={handleClear} style={styles.iconButton}>
-           <Text style={{ fontSize: 20, fontWeight: '900' }}>✕</Text>
+      {showClear && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Clear search"
+          onPress={onClear}
+          radius="full"
+          tint={colors.surfaceActive}
+          hitSlop={8}
+          style={styles.clear}
+          testID={testID !== undefined ? `${testID}-clear` : undefined}
+        >
+          <ClearGlyph color={colors.onSurface} />
         </Pressable>
-      ) : null}
+      )}
     </View>
   );
-};
+});
+
+function MagnifierGlyph({ color }: { color: string }) {
+  return (
+    <View style={styles.magnifierBox}>
+      <View style={[styles.magnifierRing, { borderColor: color }]} />
+      <View style={[styles.magnifierHandle, { backgroundColor: color }]} />
+    </View>
+  );
+}
+
+function ClearGlyph({ color }: { color: string }) {
+  return (
+    <View style={styles.clearBox}>
+      <View style={[styles.clearBar, { backgroundColor: color, width: 12, transform: [{ rotate: '45deg' }] }]} />
+      <View style={[styles.clearBar, { backgroundColor: color, width: 12, transform: [{ rotate: '-45deg' }] }]} />
+    </View>
+  );
+}
 
 const styles = StyleSheet.create({
-  container: {
+  field: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 56, // Tall search bar
-    paddingHorizontal: 8,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    gap: 10,
   },
   input: {
     flex: 1,
-    height: '100%',
-    paddingHorizontal: 8,
-    fontWeight: '600',
+    alignSelf: 'stretch',
+    fontSize: 15,
+    padding: 0,
   },
-  iconButton: {
-    padding: 8,
-    justifyContent: 'center',
+  magnifierBox: {
+    width: 18,
+    height: 18,
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  magnifierRing: {
+    width: 11,
+    height: 11,
+    borderWidth: 2,
+    borderRadius: 999,
+  },
+  magnifierHandle: {
+    position: 'absolute',
+    width: 2,
+    height: 7,
+    bottom: 1,
+    right: 2,
+    transform: [{ rotate: '-45deg' }],
+  },
+  clearBox: {
+    width: 18,
+    height: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  clearBar: {
+    position: 'absolute',
+    height: 1.5,
+  },
+  clear: {
+    padding: 4,
   },
 });
-
-export default Searchbar;

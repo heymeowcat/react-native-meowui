@@ -1,134 +1,134 @@
-import React, { useEffect } from 'react';
-import { View, Pressable, StyleSheet, StyleProp, ViewStyle, Text } from 'react-native';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withSpring, 
-  withTiming,
-  interpolate,
-  Extrapolate
-} from 'react-native-reanimated';
-import { useTheme } from '../../theme';
+import { memo, type ReactNode } from 'react';
+import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { useTheme, type ThemeColors, type Tone } from '../../theme';
+import { Cast } from '../../utils/cast';
+import { Pressable } from '../Pressable/Pressable';
+import { Text } from '../Text/Text';
+
+export type CheckboxTone = Exclude<Tone, 'neutral'>;
+
+type ToneTokens = Record<'fill' | 'on', keyof ThemeColors>;
+
+const TONE: Record<CheckboxTone, ToneTokens> = {
+  primary: { fill: 'primary', on: 'onPrimary' },
+  success: { fill: 'success', on: 'onSuccess' },
+  warning: { fill: 'warning', on: 'onWarning' },
+  error: { fill: 'error', on: 'onError' },
+  info: { fill: 'info', on: 'onInfo' },
+};
 
 export interface CheckboxProps {
-  status: 'checked' | 'unchecked' | 'indeterminate';
-  onPress?: () => void;
+  checked: boolean;
+  /** Called with the next state when the row is pressed. */
+  onValueChange?: (checked: boolean) => void;
   disabled?: boolean;
-  color?: string;
-  uncheckedColor?: string;
-  size?: number;
+  /** Label rendered beside the box; the whole row is tappable. */
+  label?: ReactNode;
+  /** Semantic color family for the checked fill. Defaults to `'primary'`. */
+  tone?: CheckboxTone;
   style?: StyleProp<ViewStyle>;
+  testID?: string;
 }
 
-export const Checkbox: React.FC<CheckboxProps> = ({
-  status,
-  onPress,
+/**
+ * A 20px checkbox: milk sheet, 1px outlineStrong border, 6px corners. Checked
+ * sinks into the tone fill (the cast collapses) and stamps a paper check.
+ */
+export const Checkbox = memo(function Checkbox({
+  checked,
+  onValueChange,
   disabled = false,
-  color,
-  uncheckedColor,
-  size = 24,
+  label,
+  tone = 'primary',
   style,
-}) => {
-  const { theme } = useTheme();
-  
-  const progress = useSharedValue(status === 'checked' || status === 'indeterminate' ? 1 : 0);
-  const scale = useSharedValue(1);
+  testID,
+}: CheckboxProps) {
+  const { colors, radii } = useTheme();
+  const tokens = TONE[tone];
 
-  useEffect(() => {
-    progress.value = withSpring(
-      status === 'checked' || status === 'indeterminate' ? 1 : 0,
-      theme.animations.springs.bouncy
-    );
-  }, [status, theme]);
+  const boxBackground = disabled
+    ? colors.surfaceMuted
+    : checked
+      ? colors[tokens.fill]
+      : colors.surface;
 
-  const handlePressIn = () => {
-    scale.value = withSpring(0.9, theme.animations.springs.snappy);
-  };
+  const boxBorder = disabled
+    ? colors.outline
+    : checked
+      ? colors[tokens.fill]
+      : colors.outlineStrong;
 
-  const handlePressOut = () => {
-    scale.value = withSpring(1, theme.animations.springs.snappy);
-  };
-
-  const animatedContainerStyle = useAnimatedStyle(() => {
-    const backgroundColor = progress.value > 0.5 
-      ? (color || theme.colors.primary) 
-      : 'transparent';
-      
-    const borderColor = progress.value > 0.5
-      ? (color || theme.colors.primary)
-      : (uncheckedColor || theme.colors.outline);
-
-    return {
-      backgroundColor,
-      borderColor: disabled ? theme.colors.outlineVariant : borderColor,
-      transform: [{ scale: scale.value }],
-    };
-  });
-
-  const animatedIconStyle = useAnimatedStyle(() => {
-    return {
-      opacity: progress.value,
-      transform: [{ scale: progress.value }],
-    };
-  });
-
-  const checkedColor = color || theme.colors.primary;
-  const iconColor = theme.colors.onPrimary;
+  const labelColor = disabled ? colors.onSurfaceSubtle : colors.onSurface;
 
   return (
     <Pressable
-      onPress={onPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked, disabled }}
+      accessibilityLabel={typeof label === 'string' ? label : undefined}
       disabled={disabled}
-      hitSlop={8}
-      style={[styles.container, style]}
+      onPress={() => onValueChange?.(!checked)}
+      radius="md"
+      tint={colors.surfaceMuted}
+      disabledOpacity={1}
+      style={[styles.row, style]}
+      testID={testID}
     >
-      <Animated.View
-        style={[
-          styles.box,
-          {
-            width: size,
-            height: size,
-            borderRadius: 6,
-            borderWidth: 2,
-          },
-          animatedContainerStyle,
-        ]}
-      >
-        <Animated.View style={[styles.iconContainer, animatedIconStyle]}>
-          <Text 
-            style={{ 
-              color: iconColor, 
-              fontWeight: '900', 
-              fontSize: size * 0.7,
-              lineHeight: size * 0.8, // Center vertically
-              textAlign: 'center'
-            }}
-          >
-            {status === 'indeterminate' ? "—" : "✓"} 
-          </Text>
-        </Animated.View>
-      </Animated.View>
+      <Cast level={checked || disabled ? 0 : 1} color={colors.shadow} radius={radii.sm}>
+        <View
+          style={[
+            styles.box,
+            {
+              backgroundColor: boxBackground,
+              borderColor: boxBorder,
+              borderRadius: radii.sm,
+            },
+          ]}
+        >
+          {checked && <CheckMark color={colors[tokens.on]} />}
+        </View>
+      </Cast>
+      {label !== undefined && label !== null && (
+        <Text style={{ color: labelColor, flexShrink: 1 }}>{label}</Text>
+      )}
     </Pressable>
   );
-};
-
-const styles = StyleSheet.create({
-  container: {
-    margin: 4,
-  },
-  box: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-  },
-  iconContainer: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
 });
 
-export default Checkbox;
+function CheckMark({ color }: { color: string }) {
+  return (
+    <View style={styles.markBox}>
+      <View style={[styles.check, { borderColor: color }]} />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 44,
+    gap: 12,
+    paddingVertical: 10,
+  },
+  box: {
+    width: 20,
+    height: 20,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  markBox: {
+    width: 11,
+    height: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  check: {
+    width: 9,
+    height: 5,
+    borderLeftWidth: 1.5,
+    borderBottomWidth: 1.5,
+    transform: [{ rotate: '-45deg' }],
+    marginTop: -1,
+  },
+});

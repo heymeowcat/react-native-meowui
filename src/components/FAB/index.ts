@@ -1,4 +1,2 @@
-export { FAB, default } from './FAB';
-export type { FABProps, FABSize, FABVariant } from './FAB';
-export { FABGroup } from './FABGroup';
-export type { FABGroupProps, FABGroupAction } from './FABGroup';
+export { FAB, type FABProps, type FABSize } from './FAB';
+export { FABGroup, type FABGroupProps, type FABGroupAction } from './FABGroup';
