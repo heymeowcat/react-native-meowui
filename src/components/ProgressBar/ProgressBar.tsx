@@ -1,88 +1,113 @@
-/**
- * MeowUI ProgressBar Component
- * MeowUI progress bar with thick border and solid fill
- */
-
-import React, { useEffect } from 'react';
-import { View, StyleSheet, StyleProp, ViewStyle, DimensionValue } from 'react-native';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withSpring 
-} from 'react-native-reanimated';
+import { memo, useEffect, useRef, useState } from 'react';
+import { Animated, Easing, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useTheme } from '../../theme';
 
 export interface ProgressBarProps {
-  progress: number; // 0 to 1
+  /** 0..1; omit for the indeterminate sliding block. */
+  progress?: number;
+  /** Track height. Defaults to `12` — a chunky, pocket-instrument gauge. */
+  height?: number;
+  /** Fill color. Defaults to `colors.primary` (blueberry). */
   color?: string;
   trackColor?: string;
   style?: StyleProp<ViewStyle>;
-  height?: number;
-  indeterminate?: boolean; // TODO: Implement indeterminate animation
+  testID?: string;
 }
 
-export const ProgressBar: React.FC<ProgressBarProps> = ({
+/**
+ * A pocket gauge: oat track in a hairline frame with a blueberry fill. The
+ * determinate fill animates its width on the JS driver — width is not a
+ * native-driveable property and the track is a single small view.
+ * Indeterminate mode slides a block with a native-driven transform loop.
+ */
+export const ProgressBar = memo(function ProgressBar({
   progress,
+  height = 12,
   color,
   trackColor,
   style,
-  height = 12,
-  indeterminate = false,
-}) => {
-  const { theme } = useTheme();
-  
-  const width = useSharedValue(0);
+  testID,
+}: ProgressBarProps) {
+  const { colors } = useTheme();
+  const fill = color ?? colors.primary;
+  const track = trackColor ?? colors.surfaceMuted;
+
+  const anim = useRef(new Animated.Value(0)).current;
+  const [trackWidth, setTrackWidth] = useState(0);
+  const clamped = progress === undefined ? undefined : Math.max(0, Math.min(1, progress));
 
   useEffect(() => {
-    // Clamp progress between 0 and 1
-    const clampedProgress = Math.min(Math.max(progress, 0), 1);
-    width.value = withSpring(clampedProgress, theme.animations.springs.smooth);
-  }, [progress, theme]);
+    if (progress === undefined) {
+      // indeterminate: slide a 30% block across the track forever
+      const loop = Animated.loop(
+        Animated.sequence([
+          Animated.timing(anim, {
+            toValue: 1,
+            duration: 1100,
+            easing: Easing.inOut(Easing.quad),
+            useNativeDriver: true,
+          }),
+          Animated.timing(anim, {
+            toValue: 0,
+            duration: 1100,
+            easing: Easing.inOut(Easing.quad),
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      loop.start();
+      return () => loop.stop();
+    }
+    Animated.timing(anim, {
+      toValue: Math.max(0, Math.min(1, progress)),
+      duration: 180,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
+  }, [progress, anim]);
 
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      width: `${width.value * 100}%` as DimensionValue, 
-    };
-  });
+  if (progress === undefined) {
+    const translateX = anim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [-Math.max(trackWidth * 0.3, 10), Math.max(trackWidth, 10)],
+    });
+    return (
+      <View
+        accessibilityRole="progressbar"
+        style={[styles.track, { height, backgroundColor: track, borderColor: colors.outline }, style]}
+        onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}
+        testID={testID}
+      >
+        <Animated.View style={[styles.fill, { width: Math.max(trackWidth * 0.3, 10), backgroundColor: fill, transform: [{ translateX }] }]} />
+      </View>
+    );
+  }
 
+  const width = anim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
   return (
     <View
-      style={[
-        styles.track,
-        {
-          height,
-          backgroundColor: trackColor || theme.colors.surfaceVariant,
-          borderRadius: height / 2,
-          borderWidth: 2,
-          borderColor: theme.colors.outline,
-        },
-        style,
-      ]}
+      accessibilityRole="progressbar"
+      accessibilityValue={{ min: 0, max: 1, now: clamped ?? 0 }}
+      aria-valuemin={0}
+      aria-valuemax={1}
+      aria-valuenow={clamped ?? 0}
+      style={[styles.track, { height, backgroundColor: track, borderColor: colors.outline }, style]}
+      testID={testID}
     >
-      <Animated.View
-        style={[
-          styles.fill,
-          {
-            backgroundColor: color || theme.colors.primary,
-            borderRadius: (height - 4) / 2, // Adjust for border
-          },
-          animatedStyle,
-        ]}
-      />
+      <Animated.View style={[styles.fill, { width, backgroundColor: fill }]} />
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   track: {
-    width: '100%',
+    borderWidth: 1,
+    borderRadius: 9999,
     overflow: 'hidden',
-    justifyContent: 'center',
-    padding: 1, // Space for fill to be inside border
+    alignSelf: 'stretch',
   },
   fill: {
     height: '100%',
+    borderRadius: 9999,
   },
 });
-
-export default ProgressBar;

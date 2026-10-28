@@ -1,229 +1,237 @@
-/**
- * MeowUI Toast Component
- */
-
-import React, { useEffect, useState, useCallback, createContext, useContext } from 'react';
 import {
-  View,
-  Text,
+  createContext,
+  memo,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
+import {
+  Animated,
+  Easing,
   StyleSheet,
-  Dimensions,
-  StyleProp,
-  ViewStyle,
+  View,
 } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-  withSequence,
-  runOnJS,
-} from 'react-native-reanimated';
-import { useTheme } from '../../theme';
+import { useTheme, type ThemeColors } from '../../theme';
+import { softElevation } from '../../utils/cast';
 import { Portal } from '../Portal/Portal';
+import { Pressable } from '../Pressable/Pressable';
+import { Surface } from '../Surface/Surface';
+import { Text } from '../Text/Text';
 
-const { width: screenWidth } = Dimensions.get('window');
+/**
+ * Tones available to toasts. `primary` is intentionally absent — toasts speak
+ * in semantics only.
+ */
+export type ToastTone = 'neutral' | 'success' | 'error' | 'info' | 'warning';
 
-export type ToastType = 'info' | 'success' | 'warning' | 'error';
-export type ToastPosition = 'top' | 'bottom';
-
-export interface ToastConfig {
-  message: string;
-  type?: ToastType;
-  duration?: number;
-  position?: ToastPosition;
-  icon?: React.ReactNode;
+export interface ToastAction {
+  label: string;
+  onPress: () => void;
 }
 
-export interface ToastProps extends ToastConfig {
-  visible: boolean;
-  onHide?: () => void;
-  style?: StyleProp<ViewStyle>;
+export interface ToastOptions {
+  message: string;
+  tone?: ToastTone;
+  /** Milliseconds before auto-dismiss. Defaults to `2500`. */
+  duration?: number;
+  action?: ToastAction;
+}
+
+type ToastTokens = Record<'muted' | 'onMuted', keyof ThemeColors>;
+
+const TONE: Record<ToastTone, ToastTokens> = {
+  neutral: { muted: 'inverseSurface', onMuted: 'inverseOnSurface' },
+  success: { muted: 'successMuted', onMuted: 'onSuccessMuted' },
+  error: { muted: 'errorMuted', onMuted: 'onErrorMuted' },
+  info: { muted: 'infoMuted', onMuted: 'onInfoMuted' },
+  warning: { muted: 'warningMuted', onMuted: 'onWarningMuted' },
+};
+
+/** Maximum simultaneous toasts; the oldest is dropped when exceeded. */
+const MAX_TOASTS = 3;
+
+const DEFAULT_DURATION = 2500;
+
+interface ToastInstance {
+  id: number;
+  options: ToastOptions;
 }
 
 interface ToastContextValue {
-  show: (config: ToastConfig) => void;
-  hide: () => void;
+  show: (options: ToastOptions) => void;
 }
 
 const ToastContext = createContext<ToastContextValue | null>(null);
 
-export const useToast = () => {
+/**
+ * Access the toast queue. `show()` enqueues a toast that auto-dismisses; safe
+ * to call from anywhere under the `ToastProvider`. Without a provider the
+ * call is a no-op (warned in development).
+ */
+export function useToast(): ToastContextValue {
   const context = useContext(ToastContext);
-  if (!context) {
-    throw new Error('useToast must be used within a ToastProvider');
+  if (__DEV__ && !context) {
+    console.warn(
+      'MeowUI: useToast() was called outside a <ToastProvider> — the toast will not render.'
+    );
   }
-  return context;
-};
+  return context ?? { show: () => undefined };
+}
 
-export const Toast: React.FC<ToastProps> = ({
-  visible,
-  message,
-  type = 'info',
-  duration = 3000,
-  position = 'top',
-  icon,
-  onHide,
-  style,
-}) => {
-  const { theme } = useTheme();
-  
-  const translateY = useSharedValue(position === 'top' ? -100 : 100);
-  const opacity = useSharedValue(0);
-  const scale = useSharedValue(0.9);
-  
-  useEffect(() => {
-    if (visible) {
-      translateY.value = withSpring(0, theme.animations.springs.smooth);
-      opacity.value = withTiming(1, { duration: 200 });
-      scale.value = withSpring(1, theme.animations.springs.bouncy);
-      
-      if (duration > 0 && onHide) {
-        const timeout = setTimeout(onHide, duration);
-        return () => clearTimeout(timeout);
-      }
-    } else {
-      translateY.value = withTiming(position === 'top' ? -100 : 100, { duration: 200 });
-      opacity.value = withTiming(0, { duration: 200 });
-      scale.value = withTiming(0.9, { duration: 200 });
-    }
-  }, [visible, duration, position]);
-  
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateY: translateY.value },
-      { scale: scale.value },
-    ],
-    opacity: opacity.value,
-  }));
-  
-  const getTypeColor = () => {
-    switch (type) {
-      case 'success': return theme.colors.success;
-      case 'warning': return theme.colors.warning;
-      case 'error': return theme.colors.error;
-      default: return theme.colors.primary;
-    }
-  };
-  
-  const getTypeIcon = () => {
-    if (icon) return icon;
-    switch (type) {
-      case 'success': return '✓';
-      case 'warning': return '⚠';
-      case 'error': return '✕';
-      default: return 'ℹ';
-    }
-  };
-  
-  if (!visible) return null;
-  
-  return (
-    <Portal>
-      <Animated.View
-        style={[
-          styles.container,
-          { [position]: 60 },
-          animatedStyle,
-          style,
-        ]}
-      >
-        <View
-          style={[
-            styles.toast,
-            {
-              backgroundColor: theme.colors.surface,
-              borderRadius: theme.borderRadius.lg,
-              borderWidth: 2,
-              borderColor: theme.colors.outline,
-              borderLeftWidth: 4,
-              borderLeftColor: getTypeColor(),
-              ...theme.elevation[3],
-            },
-          ]}
-        >
-          <View style={[styles.iconContainer, { backgroundColor: getTypeColor() }]}>
-            <Text style={styles.iconText}>{getTypeIcon()}</Text>
-          </View>
-          <Text
-            style={[
-              styles.message,
-              {
-                color: theme.colors.onSurface,
-                ...theme.typography.bodyMedium,
-              },
-            ]}
-            numberOfLines={2}
-          >
-            {message}
-          </Text>
-        </View>
-      </Animated.View>
-    </Portal>
-  );
-};
+export interface ToastProviderProps {
+  children?: ReactNode;
+}
 
-// Toast Provider for queue management
-export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [toast, setToast] = useState<ToastConfig | null>(null);
-  const [visible, setVisible] = useState(false);
-  
-  const show = useCallback((config: ToastConfig) => {
-    setToast(config);
-    setVisible(true);
+/**
+ * Owns the app-wide toast queue and renders the stack through a `Portal`,
+ * floating above all content. Mount it once near the root (inside
+ * `<MeowProvider>`); call `useToast().show(...)` anywhere below it. Toasts
+ * stack from the top of the viewport and are capped at 3 — the oldest drops
+ * off when exceeded.
+ */
+export function ToastProvider({ children }: ToastProviderProps) {
+  const { spacing, zIndex } = useTheme();
+  const [toasts, setToasts] = useState<ToastInstance[]>([]);
+  const nextId = useRef(0);
+
+  const remove = useCallback((id: number) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
   }, []);
-  
-  const hide = useCallback(() => {
-    setVisible(false);
-    setTimeout(() => setToast(null), 200);
+
+  const show = useCallback((options: ToastOptions) => {
+    nextId.current += 1;
+    const instance: ToastInstance = { id: nextId.current, options };
+    setToasts((prev) => [...prev, instance].slice(-MAX_TOASTS));
   }, []);
-  
+
+  const value = useMemo<ToastContextValue>(() => ({ show }), [show]);
+
   return (
-    <ToastContext.Provider value={{ show, hide }}>
+    <ToastContext.Provider value={value}>
       {children}
-      {toast && (
-        <Toast
-          {...toast}
-          visible={visible}
-          onHide={hide}
-        />
-      )}
+      <Portal zIndex={zIndex.toast}>
+        <View
+          pointerEvents="box-none"
+          style={[StyleSheet.absoluteFill, { zIndex: zIndex.toast }]}
+        >
+          <View
+            pointerEvents="box-none"
+            style={[styles.stack, { paddingTop: spacing[5], paddingHorizontal: spacing[4], gap: spacing[2] }]}
+          >
+            {toasts.map((toast) => (
+              <ToastItem key={toast.id} instance={toast} onRemove={remove} />
+            ))}
+          </View>
+        </View>
+      </Portal>
     </ToastContext.Provider>
   );
-};
+}
 
-const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    left: 16,
-    right: 16,
-    zIndex: 3000,
-    alignItems: 'center',
-  },
-  toast: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    maxWidth: 400,
-    width: '100%',
-  },
-  iconContainer: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  iconText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  message: {
-    flex: 1,
-  },
+interface ToastItemProps {
+  instance: ToastInstance;
+  onRemove: (id: number) => void;
+}
+
+const ToastItem = memo(function ToastItem({ instance, onRemove }: ToastItemProps) {
+  const { colors, spacing, motion } = useTheme();
+  const { message, tone = 'neutral', duration = DEFAULT_DURATION, action } = instance.options;
+  const progress = useRef(new Animated.Value(0)).current;
+
+  const dismiss = useCallback(() => {
+    Animated.timing(progress, {
+      toValue: 0,
+      duration: motion.durationBase,
+      easing: Easing.in(Easing.cubic),
+      useNativeDriver: true,
+    }).start(({ finished }) => {
+      if (finished) onRemove(instance.id);
+    });
+  }, [progress, instance.id, onRemove, motion.durationBase]);
+
+  useEffect(() => {
+    const entrance = Animated.timing(progress, {
+      toValue: 1,
+      duration: motion.durationBase,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    });
+    entrance.start();
+    const timer = setTimeout(dismiss, duration);
+    return () => {
+      clearTimeout(timer);
+      entrance.stop();
+    };
+  }, [dismiss, duration, progress, motion.durationBase]);
+
+  const tokens = TONE[tone];
+  const translateY = progress.interpolate({ inputRange: [0, 1], outputRange: [-12, 0] });
+  // A floating slip: tone-tinted ground, matching border and soft shadow.
+  // Neutral sits on delicious espresso ink with cream copy.
+  const borderColor = tone === 'neutral' ? colors.inverseOnSurface : colors[tone];
+
+  return (
+    <Animated.View pointerEvents="box-none" style={{ opacity: progress, transform: [{ translateY }] }}>
+      <Surface
+        radius="xl"
+        outlined={false}
+        backgroundColor={colors[tokens.muted]}
+        accessibilityLiveRegion="polite"
+        style={[
+          {
+            borderWidth: 1,
+            borderColor,
+            paddingVertical: spacing[3],
+            paddingHorizontal: spacing[3] + spacing[1],
+          },
+          softElevation(2, colors.shadow),
+        ]}
+      >
+        <View style={[styles.row, { gap: spacing[3] }]}>
+          {tone !== 'neutral' && <View style={[styles.dot, { backgroundColor: colors[tone] }]} />}
+          <Text variant="body" style={{ flex: 1, color: colors[tokens.onMuted] }} numberOfLines={2}>
+            {message}
+          </Text>
+          {action != null && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={action.label}
+              onPress={() => {
+                action.onPress();
+                dismiss();
+              }}
+            >
+              <Text
+                variant="label"
+                weight="600"
+                style={{ color: colors[tokens.onMuted] }}
+                numberOfLines={1}
+              >
+                {action.label}
+              </Text>
+            </Pressable>
+          )}
+        </View>
+      </Surface>
+    </Animated.View>
+  );
 });
 
-export default Toast;
+const styles = StyleSheet.create({
+  stack: {
+    alignItems: 'stretch',
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 9999,
+  },
+});

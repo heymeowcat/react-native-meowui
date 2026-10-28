@@ -1,2 +1,1 @@
-export * from './Banner';
-export { default } from './Banner';
+export { Banner, type BannerProps, type BannerTone, type BannerAction } from './Banner';

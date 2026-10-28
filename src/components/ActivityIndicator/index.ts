@@ -1,2 +1,5 @@
-export * from './ActivityIndicator';
-export { default } from './ActivityIndicator';
+export {
+  ActivityIndicator,
+  type ActivityIndicatorProps,
+  type ActivityIndicatorSize,
+} from './ActivityIndicator';

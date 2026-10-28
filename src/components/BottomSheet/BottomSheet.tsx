@@ -1,194 +1,200 @@
-/**
- * MeowUI BottomSheet Component
- * Gesture-driven bottom sheet with snap points
- */
-
-import React, { useEffect, useCallback } from 'react';
+import { memo, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
-  View,
+  Animated,
+  Easing,
+  Pressable as RNPressable,
   StyleSheet,
-  Dimensions,
-  Pressable,
-  StyleProp,
-  ViewStyle,
+  View,
+  type LayoutChangeEvent,
+  type StyleProp,
+  type ViewStyle,
 } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-  // useAnimatedGestureHandler,
-  runOnJS,
-} from 'react-native-reanimated';
-import { PanGestureHandler, GestureHandlerRootView } from 'react-native-gesture-handler';
-import { BlurView } from 'expo-blur';
 import { useTheme } from '../../theme';
-
-const { height: screenHeight } = Dimensions.get('window');
+import { softElevation } from '../../utils/cast';
+import { Portal } from '../Portal/Portal';
+import { Pressable } from '../Pressable/Pressable';
+import { Surface } from '../Surface/Surface';
+import { Text } from '../Text/Text';
 
 export interface BottomSheetProps {
+  /** Drives presentation; keep rendering the component so it can animate out. */
   visible: boolean;
-  onDismiss?: () => void;
-  children: React.ReactNode;
-  snapPoints?: number[];
-  initialSnapIndex?: number;
-  dismissible?: boolean;
-  handleVisible?: boolean;
-  blurBackdrop?: boolean;
+  /** Called on scrim tap and handle tap (when `dismissable`). */
+  onDismiss: () => void;
+  children?: ReactNode;
+  /** Optional centered title under the handle. */
+  title?: string;
+  /** Shows the 40×4 grab bar; tapping it dismisses. Defaults to `true`. */
+  handle?: boolean;
+  /** Whether the scrim and handle dismiss. Defaults to `true`. */
+  dismissable?: boolean;
   style?: StyleProp<ViewStyle>;
-  contentStyle?: StyleProp<ViewStyle>;
+  /** Style overrides for the animated fullscreen layer around the surface. */
+  contentContainerStyle?: StyleProp<ViewStyle>;
+  testID?: string;
 }
 
-export const BottomSheet: React.FC<BottomSheetProps> = ({
+/**
+ * A modal bottom sheet: fading scrim plus a Surface docked to the bottom — a
+ * milk-paper sheet with a hairline border, soft layered shadow and 16px
+ * corners on every edge, capped at 85% viewport height, sliding up from its
+ * own measured height. Children stay mounted during the close animation and
+ * are removed once it finishes.
+ */
+export const BottomSheet = memo(function BottomSheet({
   visible,
   onDismiss,
   children,
-  snapPoints = [0.5, 0.9],
-  initialSnapIndex = 0,
-  dismissible = true,
-  handleVisible = true,
-  blurBackdrop = true,
+  title,
+  handle = true,
+  dismissable = true,
   style,
-  contentStyle,
-}) => {
-  const { theme } = useTheme();
-  
-  // Calculate snap point heights
-  const snapHeights = snapPoints.map((point) => screenHeight * (1 - point));
-  const maxHeight = screenHeight * Math.max(...snapPoints);
-  
-  const translateY = useSharedValue(screenHeight);
-  const backdropOpacity = useSharedValue(0);
-  const currentSnapIndex = useSharedValue(initialSnapIndex);
-  
-  // Show/hide sheet
+  contentContainerStyle,
+  testID,
+}: BottomSheetProps) {
+  const { colors, spacing, motion, zIndex } = useTheme();
+  const [rendered, setRendered] = useState(visible);
+  const [sheetHeight, setSheetHeight] = useState<number | null>(null);
+  const progress = useRef(new Animated.Value(0)).current;
+
   useEffect(() => {
     if (visible) {
-      backdropOpacity.value = withTiming(1, theme.animations.timings.entrance);
-      translateY.value = withSpring(
-        snapHeights[initialSnapIndex],
-        theme.animations.springs.smooth
-      );
-    } else {
-      backdropOpacity.value = withTiming(0, theme.animations.timings.exit);
-      translateY.value = withSpring(screenHeight, theme.animations.springs.smooth);
+      setRendered(true);
+      const entrance = Animated.timing(progress, {
+        toValue: 1,
+        duration: motion.durationOverlay,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      });
+      entrance.start();
+      return () => entrance.stop();
     }
-  }, [visible]);
-  
-  // Handle dismiss
-  const handleDismiss = useCallback(() => {
-    if (onDismiss) {
-      onDismiss();
+    if (rendered) {
+      const exit = Animated.timing(progress, {
+        toValue: 0,
+        duration: motion.durationOverlay,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      });
+      exit.start(({ finished }) => {
+        if (finished) setRendered(false);
+      });
+      return () => exit.stop();
     }
-  }, [onDismiss]);
-  
-  // Pan gesture handler
+  }, [visible, rendered, progress, motion.durationOverlay]);
 
-  
-  // Animated styles
-  const backdropStyle = useAnimatedStyle(() => ({
-    opacity: backdropOpacity.value,
-  }));
-  
-  const sheetStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-  }));
-  
-  if (!visible) return null;
-  
+  if (!rendered) return null;
+
+  // The sheet translates by its own measured height when closed. Until the
+  // first layout pass lands, it is kept transparent so it never flashes in
+  // place.
+  const translateY = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [sheetHeight ?? 0, 0],
+  });
+
+  const handleLayout = (event: LayoutChangeEvent) => {
+    setSheetHeight(event.nativeEvent.layout.height);
+  };
+
   return (
-    <GestureHandlerRootView style={styles.container}>
-      {/* Backdrop */}
-      <Animated.View style={[styles.backdrop, backdropStyle]}>
-        {blurBackdrop ? (
-          <BlurView intensity={20} style={styles.blur}>
-            <Pressable
-              style={styles.backdropPress}
-              onPress={dismissible ? handleDismiss : undefined}
-            />
-          </BlurView>
-        ) : (
-          <Pressable
-            style={[styles.backdropPress, { backgroundColor: theme.colors.scrim }]}
-            onPress={dismissible ? handleDismiss : undefined}
-          />
-        )}
-      </Animated.View>
-      
-      {/* Sheet */}
-      <Animated.View
-        style={[
-          styles.sheet,
-          {
-            height: maxHeight + 50,
-            backgroundColor: theme.colors.surface,
-            borderTopLeftRadius: theme.borderRadius['2xl'],
-            borderTopRightRadius: theme.borderRadius['2xl'],
-          },
-          sheetStyle,
-          style,
-        ]}
+    <Portal zIndex={zIndex.sheet}>
+      <View
+        pointerEvents="box-none"
+        style={[StyleSheet.absoluteFill, { zIndex: zIndex.sheet }]}
+        aria-hidden={!visible}
+        accessibilityElementsHidden={!visible}
+        importantForAccessibility={visible ? 'auto' : 'no-hide-descendants'}
+        testID={testID}
       >
-        {/* Handle */}
-        {handleVisible && (
-          <View style={styles.handleContainer}>
-            <View
+        <Animated.View
+          pointerEvents={visible ? 'auto' : 'none'}
+          style={[StyleSheet.absoluteFill, { backgroundColor: colors.scrim, opacity: progress }]}
+        >
+          <RNPressable
+            accessibilityLabel="Dismiss sheet"
+            accessibilityRole="button"
+            disabled={!dismissable || !visible}
+            onPress={dismissable ? onDismiss : undefined}
+            style={StyleSheet.absoluteFill}
+          />
+        </Animated.View>
+
+        <View pointerEvents="box-none" style={styles.dock}>
+          <Animated.View
+            pointerEvents={visible ? 'auto' : 'none'}
+            onLayout={handleLayout}
+            style={[
+              { opacity: sheetHeight === null ? 0 : 1, transform: [{ translateY }] },
+              contentContainerStyle,
+            ]}
+          >
+            <Surface
+              radius="xl"
+              borderColor={colors.outlineStrong}
+              accessibilityViewIsModal
+              role="dialog"
+              aria-modal
+              aria-label={title ?? 'Sheet'}
               style={[
-                styles.handle,
-                { backgroundColor: theme.colors.outlineVariant },
+                styles.sheet,
+                {
+                  maxHeight: '85%',
+                  paddingHorizontal: spacing[5],
+                  paddingBottom: spacing[6],
+                },
+                softElevation(3, colors.shadow),
+                style,
               ]}
-            />
-          </View>
-        )}
-        
-        {/* Content */}
-        <View style={[styles.content, contentStyle]}>
-          {children}
+            >
+              {handle && (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Dismiss sheet"
+                  disabled={!dismissable}
+                  onPress={onDismiss}
+                  tint={colors.surfaceMuted}
+                  style={[styles.handleHit, { paddingVertical: spacing[3] }]}
+                >
+                  <View style={[styles.handleBar, { backgroundColor: colors.outlineStrong }]} />
+                </Pressable>
+              )}
+              {title !== undefined && (
+                <Text variant="title" style={[styles.sheetTitle, { marginTop: spacing[2] }]}>
+                  {title}
+                </Text>
+              )}
+              {children}
+            </Surface>
+          </Animated.View>
         </View>
-      </Animated.View>
-    </GestureHandlerRootView>
+      </View>
+    </Portal>
   );
-};
+});
 
 const styles = StyleSheet.create({
-  container: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 1000,
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  blur: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.2)',
-  },
-  backdropPress: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  sheet: {
+  dock: {
     position: 'absolute',
+    top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 16,
+    justifyContent: 'flex-end',
   },
-  handleContainer: {
+  sheet: {
+    width: '100%',
+    overflow: 'hidden',
+  },
+  handleHit: {
     alignItems: 'center',
-    paddingVertical: 12,
   },
-  handle: {
+  handleBar: {
     width: 40,
     height: 4,
-    borderRadius: 2,
+    borderRadius: 9999,
   },
-  content: {
-    flex: 1,
-    padding: 16,
+  sheetTitle: {
+    textAlign: 'center',
   },
 });
-
-export default BottomSheet;

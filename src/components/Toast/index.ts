@@ -1,2 +1,8 @@
-export * from './Toast';
-export { default } from './Toast';
+export {
+  ToastProvider,
+  useToast,
+  type ToastOptions,
+  type ToastTone,
+  type ToastAction,
+  type ToastProviderProps,
+} from './Toast';
