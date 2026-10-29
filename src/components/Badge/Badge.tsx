@@ -1,128 +1,114 @@
-/**
- * MeowUI Badge Component
- * Notification badges with gradient support
- */
+import { memo } from 'react';
+import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { useTheme, type Tone } from '../../theme';
+import { Text } from '../Text/Text';
 
-import React from 'react';
-import { View, Text, StyleSheet, StyleProp, ViewStyle } from 'react-native';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
-import { useTheme } from '../../theme';
+type SoftTokens = { bg: string; text: string; border: string; dot: string };
 
-export type BadgeVariant = 'filled' | 'gradient';
-export type BadgeSize = 'small' | 'medium' | 'large';
+/** Soft semantic badge pairs — tinted well, tinted border, deep label. */
+const SOFT: Record<Tone, SoftTokens> = {
+  neutral: { bg: 'surfaceMuted', text: 'onSurfaceMuted', border: 'outline', dot: 'onSurfaceMuted' },
+  primary: { bg: 'primaryMuted', text: 'onPrimaryMuted', border: 'primaryOutline', dot: 'primary' },
+  success: { bg: 'successMuted', text: 'onSuccessMuted', border: 'successOutline', dot: 'success' },
+  warning: { bg: 'warningMuted', text: 'onWarningMuted', border: 'warningOutline', dot: 'warning' },
+  error: { bg: 'errorMuted', text: 'onErrorMuted', border: 'errorOutline', dot: 'error' },
+  info: { bg: 'infoMuted', text: 'onInfoMuted', border: 'infoOutline', dot: 'info' },
+};
 
 export interface BadgeProps {
-  children?: React.ReactNode;
-  count?: number;
-  maxCount?: number;
-  variant?: BadgeVariant;
-  gradientColors?: string[];
-  size?: BadgeSize;
-  visible?: boolean;
+  /** Label; omit for the bare status pip. */
+  content?: string | number;
+  tone?: Tone;
+  /** Prefix the label with the status pip (6px, tone-colored). */
   dot?: boolean;
+  /** Show numeric zero. Defaults to `false`. */
+  showZero?: boolean;
+  /** Clamp numeric counts with a trailing `+`. Defaults to `99`. */
+  max?: number;
+  size?: 'sm' | 'md';
   style?: StyleProp<ViewStyle>;
+  testID?: string;
 }
 
-const getSizeStyles = (size: BadgeSize, dot: boolean) => {
-  if (dot) {
-    switch (size) {
-      case 'small': return { width: 6, height: 6, minWidth: 6 };
-      case 'large': return { width: 12, height: 12, minWidth: 12 };
-      default: return { width: 8, height: 8, minWidth: 8 };
-    }
-  }
-  
-  switch (size) {
-    case 'small': return { height: 16, minWidth: 16, paddingHorizontal: 4 };
-    case 'large': return { height: 24, minWidth: 24, paddingHorizontal: 6 };
-    default: return { height: 20, minWidth: 20, paddingHorizontal: 5 };
-  }
-};
-
-export const Badge: React.FC<BadgeProps> = ({
-  children,
-  count,
-  maxCount = 99,
-  variant = 'gradient',
-  gradientColors,
-  size = 'medium',
-  visible = true,
-  dot = false,
+/**
+ * A semantic status badge: a soft tinted pill, 1px tone-tinted border and an
+ * optional 6px status pip. Badges are the only wholly circular shapes.
+ */
+export const Badge = memo(function Badge({
+  content,
+  tone = 'neutral',
+  dot = true,
+  showZero = false,
+  max = 99,
+  size = 'md',
   style,
-}) => {
-  const { theme } = useTheme();
-  
-  if (!visible) return null;
-  
-  const getBadgeStyle = (): ViewStyle => {
-    const baseStyle: ViewStyle = {
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 10,
-      borderWidth: 1.5,
-      borderColor: theme.colors.outline,
-    };
-    
-    // Size dimensions
-    let dimensions = { width: 0, height: 0, borderRadius: 0 };
-    
-    if (dot) {
-      dimensions = {
-        width: 12,
-        height: 12,
-        borderRadius: 6,
-      };
-    } else {
-      //  default sizes
-      const s = size === 'small' ? 20 : 24;
-      dimensions = {
-        width: s,
-        height: s,
-        borderRadius: s / 2,
-      };
-    }
+  testID,
+}: BadgeProps) {
+  const { colors } = useTheme();
+  const tokens = SOFT[tone];
 
-    return {
-      ...baseStyle,
-      ...dimensions,
-      backgroundColor: theme.colors.error, // Badges usually red/error color
-    };
-  };
+  const isCount = typeof content === 'number';
+  const showCount = content !== undefined && (!isCount || content !== 0 || showZero);
+  const label = isCount ? (content > max ? `${max}+` : `${content}`) : content;
 
-  const animatedStyle: ViewStyle = {
-    position: 'absolute',
-    top: -5,
-    right: -5,
-  };
+  const fill = colors[tokens.bg as keyof typeof colors];
+  const text = colors[tokens.text as keyof typeof colors];
+  const border = colors[tokens.border as keyof typeof colors];
+  const pip = colors[tokens.dot as keyof typeof colors];
+
+  if (isCount && content === 0 && !showZero) return null;
+
+  if (content === undefined) {
+    return (
+      <View
+        style={[
+          styles.pipOnly,
+          { backgroundColor: pip, width: size === 'sm' ? 6 : 8, height: size === 'sm' ? 6 : 8 },
+          style,
+        ]}
+        testID={testID}
+      />
+    );
+  }
 
   return (
-    <View style={styles.container}>
-      {children}
-      <Animated.View entering={FadeIn} exiting={FadeOut} style={[getBadgeStyle(), animatedStyle, style]}>
-         {!dot && count !== undefined && (
-           <Text style={{ 
-             color: theme.colors.onError, 
-             fontSize: 10, 
-             fontWeight: 'bold' 
-           }}>
-             {count > maxCount ? `${maxCount}+` : count}
-           </Text>
-         )}
-      </Animated.View>
+    <View
+      style={[
+        styles.badge,
+        {
+          backgroundColor: fill,
+          borderColor: border,
+          minHeight: size === 'sm' ? 22 : 26,
+          paddingHorizontal: size === 'sm' ? 9 : 11,
+          gap: 6,
+        },
+        style,
+      ]}
+      testID={testID}
+    >
+      {dot && <View style={[styles.dot, { backgroundColor: pip, width: 6, height: 6 }]} />}
+      {showCount && (
+        <Text weight="500" style={{ color: text, fontSize: 11, lineHeight: 14 }}>
+          {label}
+        </Text>
+      )}
     </View>
   );
-};
-
-const styles = StyleSheet.create({
-  container: {
-    alignSelf: 'flex-start',
-    position: 'relative',
-  },
-  text: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-    textAlign: 'center',
-  },
 });
 
-export default Badge;
+const styles = StyleSheet.create({
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderRadius: 9999,
+    alignSelf: 'flex-start',
+  },
+  pipOnly: {
+    borderRadius: 9999,
+  },
+  dot: {
+    borderRadius: 9999,
+  },
+});

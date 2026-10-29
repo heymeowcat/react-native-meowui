@@ -1,87 +1,76 @@
-/**
- * MeowUI Collapsible Component
- * Generic animated container for expanding/collapsing content
- */
-
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, LayoutChangeEvent, StyleProp, ViewStyle } from 'react-native';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withTiming,
-  withSpring
-} from 'react-native-reanimated';
+import { memo, useEffect, useRef, useState, type ReactNode } from 'react';
+import {
+  Animated,
+  Easing,
+  StyleSheet,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import { useTheme } from '../../theme';
 
 export interface CollapsibleProps {
+  /** Whether the content is visible. */
   expanded: boolean;
-  children: React.ReactNode;
-  duration?: number;
+  children: ReactNode;
   style?: StyleProp<ViewStyle>;
+  testID?: string;
 }
 
-export const Collapsible: React.FC<CollapsibleProps> = ({
-  expanded,
-  children,
-  duration = 300,
-  style,
-}) => {
-  const [measuredHeight, setMeasuredHeight] = useState(0);
-  const height = useSharedValue(0);
-  const { theme } = useTheme();
+/**
+ * Reveals or hides its children by animating their measured height. The
+ * content is kept mounted (absolutely positioned inside the clipping box) so
+ * measurement survives collapse and height changes re-animate.
+ */
+export const Collapsible = memo(function Collapsible({ expanded, children, style, testID }: CollapsibleProps) {
+  const { motion } = useTheme();
+  const [contentHeight, setContentHeight] = useState(0);
 
-  const onLayout = (event: LayoutChangeEvent) => {
-    const layoutHeight = event.nativeEvent.layout.height;
-    if (layoutHeight > 0 && layoutHeight !== measuredHeight) {
-      setMeasuredHeight(layoutHeight);
-    }
-  };
+  // Height is a layout property and React Native's native driver only supports
+  // opacity and transforms, so this animation must run on the JS driver. The
+  // animated tree here is small, which keeps JS-driven timing smooth.
+  const animatedHeight = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    if (expanded) {
-      height.value = withSpring(measuredHeight, theme.animations.springs.smooth);
-    } else {
-      height.value = withTiming(0, { duration });
-    }
-  }, [expanded, measuredHeight, theme, duration]);
-
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      height: height.value,
-      opacity: height.value === 0 ? 0 : 1,
-    };
-  });
+    Animated.timing(animatedHeight, {
+      toValue: expanded ? contentHeight : 0,
+      duration: motion.durationBase,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
+  }, [expanded, contentHeight, animatedHeight, motion.durationBase]);
 
   return (
-    <View style={[styles.container, style]}>
-      {/* Hidden measurement container */}
-      <View style={styles.hiddenContainer} onLayout={onLayout}>
+    <Animated.View
+      pointerEvents={expanded ? 'auto' : 'none'}
+      accessibilityElementsHidden={!expanded}
+      importantForAccessibility={expanded ? 'auto' : 'no-hide-descendants'}
+      testID={testID}
+      style={[styles.clipped, { height: animatedHeight }, style]}
+    >
+      <View
+        style={styles.measured}
+        onLayout={(event) => {
+          const height = event.nativeEvent.layout.height;
+          setContentHeight((prev) => (prev === height ? prev : height));
+        }}
+      >
         {children}
       </View>
-
-      {/* Visible animated container */}
-      <Animated.View style={[styles.animatedContainer, animatedStyle]}>
-        {children}
-      </Animated.View>
-    </View>
+    </Animated.View>
   );
-};
+});
 
 const styles = StyleSheet.create({
-  container: {
+  clipped: {
     overflow: 'hidden',
   },
-  hiddenContainer: {
+  measured: {
+    // Absolutely positioned so the content lays out at its natural height
+    // regardless of the animated parent height.
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    opacity: 0,
-    zIndex: -1,
-  },
-  animatedContainer: {
-    overflow: 'hidden',
   },
 });
-
-export default Collapsible;

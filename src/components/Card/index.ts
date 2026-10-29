@@ -1,2 +1,12 @@
-export { Card, default } from './Card';
-export type { CardProps, CardVariant } from './Card';
+export {
+  Card,
+  CardCover,
+  CardTitle,
+  CardContent,
+  CardActions,
+  type CardProps,
+  type CardCoverProps,
+  type CardTitleProps,
+  type CardContentProps,
+  type CardActionsProps,
+} from './Card';

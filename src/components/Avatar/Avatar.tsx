@@ -1,129 +1,95 @@
-/**
- * MeowUI Avatar Component
- * User avatar with gradient border ring
- */
-
-import React from 'react';
-import { View, Image, Text, StyleSheet, StyleProp, ViewStyle } from 'react-native';
-
+import { memo } from 'react';
+import { Image, StyleSheet, View, type ImageProps, type StyleProp, type ViewStyle } from 'react-native';
 import { useTheme } from '../../theme';
+import { Text } from '../Text/Text';
 
 export type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
+/** Box sizes — avatars and status pips are the kit's only circular shapes. */
+const SIZE: Record<AvatarSize, number> = { xs: 24, sm: 32, md: 40, lg: 48, xl: 64 };
+
 export interface AvatarProps {
-  source?: { uri: string };
-  name?: string;
-  size?: AvatarSize;
-  gradientBorder?: boolean;
-  gradientColors?: string[];
-  borderWidth?: number;
+  /** Image source; when omitted the initials fallback renders. */
+  src?: ImageProps['source'];
+  /** Name for the initials fallback (first letters of the first two words). */
+  label?: string;
+  size?: AvatarSize | number;
+  backgroundColor?: string;
+  textColor?: string;
   style?: StyleProp<ViewStyle>;
+  testID?: string;
 }
 
-// Get initials from name
-const getInitials = (name: string): string => {
-  const parts = name.trim().split(' ');
-  if (parts.length >= 2) {
-    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-  }
-  return name.slice(0, 2).toUpperCase();
-};
-
-// Generate color from name
-const getColorFromName = (name: string): string => {
-  const colors = [
-    '#8B5CF6', '#EC4899', '#F97316', '#FBBF24',
-    '#10B981', '#3B82F6', '#06B6D4', '#EF4444',
-  ];
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return colors[Math.abs(hash) % colors.length];
-};
-
-export const Avatar: React.FC<AvatarProps> = ({
-  source,
-  name,
+/**
+ * A circular identity seal: blueberry-toned ground, tinted border and Fraunces
+ * initials. Pass `backgroundColor` / `textColor` for a different pairing.
+ */
+export const Avatar = memo(function Avatar({
+  src,
+  label,
   size = 'md',
-  gradientBorder = false,
-  gradientColors,
-  borderWidth = 3,
+  backgroundColor,
+  textColor,
   style,
-}) => {
-  const { theme } = useTheme();
-  
-  const avatarSize = theme.componentSizes.avatar[size];
-  const fontSize = avatarSize * 0.4;
-  
-  const avatarContent = source ? (
-    <Image
-      source={source}
-      style={[
-        styles.image,
-        {
-          width: avatarSize,
-          height: avatarSize,
-          borderRadius: avatarSize / 2,
-        },
-      ]}
-    />
-  ) : (
+  testID,
+}: AvatarProps) {
+  const { colors } = useTheme();
+  const box = typeof size === 'number' ? size : SIZE[size];
+
+  const initials = (label ?? '')
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase() ?? '')
+    .join('');
+
+  return (
     <View
+      accessibilityRole={src ? 'image' : undefined}
+      accessibilityLabel={src ? label : undefined}
       style={[
-        styles.textContainer,
+        styles.frame,
         {
-          width: avatarSize,
-          height: avatarSize,
-          borderRadius: avatarSize / 2,
-          backgroundColor: name ? getColorFromName(name) : theme.colors.primary,
+          width: box,
+          height: box,
+          backgroundColor: backgroundColor ?? colors.primaryMuted,
+          borderColor: colors.primaryOutline,
         },
+        style,
       ]}
+      testID={testID}
     >
-      <Text style={[styles.text, { fontSize, color: '#FFFFFF' }]}>
-        {name ? getInitials(name) : '?'}
-      </Text>
+      {src !== undefined ? (
+        <Image source={src} style={styles.image} resizeMode="cover" />
+      ) : (
+        <Text
+          variant="title"
+          weight="600"
+          style={[
+            {
+              color: textColor ?? colors.onPrimaryMuted,
+              fontSize: Math.round(box * 0.38),
+              lineHeight: Math.round(box * 0.44),
+            },
+          ]}
+        >
+          {initials}
+        </Text>
+      )}
     </View>
   );
-  
-  if (gradientBorder) {
-    const colors = gradientColors || theme.gradients.primary;
-    const outerSize = avatarSize + borderWidth * 2;
-    
-    return (
-      <View
-        style={[
-          {
-            width: outerSize,
-            height: outerSize,
-            borderRadius: outerSize / 2,
-            padding: borderWidth,
-            backgroundColor: theme.colors.surface,
-            borderWidth: 2,
-            borderColor: theme.colors.primary,
-          },
-          style,
-        ]}
-      >
-        {avatarContent}
-      </View>
-    );
-  }
-  
-  return <View style={style}>{avatarContent}</View>;
-};
-
-const styles = StyleSheet.create({
-  image: {
-    resizeMode: 'cover',
-  },
-  textContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  text: {
-    fontWeight: '600',
-  },
 });
 
-export default Avatar;
+const styles = StyleSheet.create({
+  frame: {
+    borderWidth: 1,
+    borderRadius: 9999,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+  },
+});
