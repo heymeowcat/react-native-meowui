@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "MeowUI Showcase",
+    "slug": "meowui-showcase",
+    "version": "0.4.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "edgeToEdgeEnabled": true
+    }
+  }
+}
