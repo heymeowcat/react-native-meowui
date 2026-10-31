@@ -1,15 +1,37 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import { satteri } from '@astrojs/markdown-satteri';
+import baseLinks from './src/plugins/base-links.mjs';
+import { mochiShikiDark, mochiShikiLight } from './src/styles/mochi-shiki.mjs';
+
+const base = '/react-native-meowui';
 
 export default defineConfig({
   // GitHub Pages deployment — adjust `base` if you serve from a custom domain.
   site: 'https://heymeowcat.github.io',
-  base: '/react-native-meowui',
+  base,
+  markdown: {
+    processor: satteri({ hastPlugins: [baseLinks({ base })] }),
+  },
   integrations: [
     starlight({
       title: 'MeowUI',
+      titleDelimiter: '—',
       description: 'Soft retro instruments pressed in cream and ink — a zero-dependency UI kit for React Native.',
       favicon: '/favicon.svg',
+      expressiveCode: {
+        themes: [mochiShikiLight, mochiShikiDark],
+        useStarlightUiThemeColors: true,
+        styleOverrides: {
+          borderRadius: '12px',
+          borderWidth: '1px',
+          codeFontFamily: "'DM Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+          codeFontSize: '0.875rem',
+          codeLineHeight: '1.7',
+          codePaddingBlock: '1.1rem',
+          uiFontFamily: "'DM Sans', system-ui, sans-serif",
+        },
+      },
       social: [
         {
           icon: 'github',

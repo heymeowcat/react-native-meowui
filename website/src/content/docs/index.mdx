@@ -1,22 +1,24 @@
 ---
-title: MeowUI
+title: A tactile React Native UI kit
 description: Soft retro instruments pressed in cream and ink — a zero-dependency UI kit for React Native.
 template: splash
+hero:
+  title: MeowUI
+  tagline: Soft retro instruments, pressed in cream and ink. A zero-dependency, tactile UI kit for React Native.
+  actions:
+    - text: Get started
+      link: getting-started/installation/
+      icon: right-arrow
+      variant: primary
+    - text: Browse components
+      link: components/
+      icon: right-arrow
+      variant: minimal
 ---
 
-import { Card, CardGrid, LinkButton } from '@astrojs/starlight/components';
+import { Card, CardGrid } from '@astrojs/starlight/components';
 
-<div style={{ marginTop: '2rem' }}>
-  <h1 style={{ fontSize: '2.6rem', marginBottom: '0.25rem', letterSpacing: '-0.02em' }}>MeowUI</h1>
-  <p style={{ fontSize: '1.25rem', color: 'var(--sl-color-gray-3)', maxWidth: '42ch' }}>
-    Soft retro instruments, pressed in cream and ink. A zero-dependency,
-    tactile UI kit for React Native.
-  </p>
-  <p style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-    <LinkButton href="/getting-started/installation">Get started</LinkButton>
-    <LinkButton variant="minimal" href="/components/">Browse components</LinkButton>
-  </p>
-</div>
+<p class="landing-eyebrow">The whole kit, in twenty lines</p>
 
 ```tsx
 import { MeowProvider, Button, Card, Text } from 'react-native-meowui';

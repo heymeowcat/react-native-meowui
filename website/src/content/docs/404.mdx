@@ -1,0 +1,22 @@
+---
+title: Page not found
+description: This page isn't in the binder.
+template: splash
+---
+
+import { LinkButton } from '@astrojs/starlight/components';
+
+This page isn't in the binder — it may have been renamed or moved.
+
+<div class="not-found-actions">
+  <LinkButton href={import.meta.env.BASE_URL + '/'} icon="right-arrow">
+    Back to the intro
+  </LinkButton>
+  <LinkButton
+    variant="secondary"
+    href={import.meta.env.BASE_URL + '/components/'}
+    icon="right-arrow"
+  >
+    Browse components
+  </LinkButton>
+</div>
