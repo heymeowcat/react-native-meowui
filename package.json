@@ -55,7 +55,7 @@
     "react-native": ">=0.74.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.28.0",
+    "@babel/core": "^7.29.7",
     "@eslint/js": "^10.0.1",
     "@react-native/babel-preset": "^0.88.0",
     "@react-native/jest-preset": "^0.88.0",
