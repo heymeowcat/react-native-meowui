@@ -1,0 +1,88 @@
+---
+title: Slider
+description: A quiet paper slider for picking a value from a range.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+Slider is a low-emphasis range control: a 6pt oat track (`surfaceActive`), a
+blueberry fill and a 22pt paper thumb ringed in primary. Tapping jumps to the
+touched position and dragging follows the finger. Values always clamp to the
+`[min, max]` range, and snap to `step` when one is provided.
+
+## Import
+
+```tsx
+import { Slider } from 'react-native-meowui';
+```
+
+## Usage
+
+The component is controlled: you own the value, and `onValueChange` fires
+continuously while the user taps or drags. Without `min`, `max` and `step`
+the slider runs continuously from `0` to `1`.
+
+```tsx
+const [volume, setVolume] = useState(0.5);
+
+<Slider value={volume} onValueChange={setVolume} accessibilityLabel="Volume" />
+```
+
+With a `step`, the value snaps to increments of that size — useful for
+counts and ratings. Snapped values are rounded to avoid floating-point
+drift.
+
+```tsx
+const [count, setCount] = useState(20);
+
+<Slider
+  value={count}
+  onValueChange={setCount}
+  min={0}
+  max={100}
+  step={5}
+  accessibilityLabel="Number of items"
+/>
+```
+
+## Interaction
+
+The container is 44pt tall, and that full height doubles as the tap and drag
+area — there is no need to hit the 6pt track itself. Gestures run through a
+`PanResponder` created once per component; it reads the latest `min`, `max`,
+`step` and `onValueChange` through a ref rather than re-creating on every
+render. On touch-down, the tap position is measured relative to the container
+and emitted immediately; during the drag, movement is tracked relative to that
+starting point, so the thumb follows the finger rather than chasing it. When
+`disabled` is set, the responder never engages and accessibility actions are
+ignored.
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `value` | `number` | — | Current value. |
+| `onValueChange` | `(value: number) => void` | — | Called with the next value while the user taps or drags the track. |
+| `min` | `number` | `0` | Lower bound. |
+| `max` | `number` | `1` | Upper bound. |
+| `step` | `number` | — | Snap increment; omit for a continuous slider. |
+| `disabled` | `boolean` | `false` | Disables interaction. |
+| `accessibilityLabel` | `string` | — | Accessibility label — adjustable elements should describe what they set. |
+| `style` | `StyleProp<ViewStyle>` | — | Container style overrides. |
+| `testID` | `string` | — | Test identifier. |
+
+## Accessibility
+
+Role `adjustable`, with `accessibilityValue` reporting `{ min, max, now }` so
+screen readers can announce the position in the range, and
+`accessibilityState` `{ disabled }`. The slider exposes `increment` and
+`decrement` accessibility actions: each press moves the value by `step` when
+one is set, or by one hundredth of the range on a continuous slider. Since the
+control communicates only through geometry, pass `accessibilityLabel`
+describing what it sets.
+
+## See also
+
+<LinkCard title="Switch" href="/components/switch/" description="For two states instead of a range." />
+<LinkCard title="Accessibility" href="/concepts/accessibility/" description="How adjustable elements announce and step their values." />
+<LinkCard title="Color tokens" href="/theming/colors/" description="Where the track, fill and disabled colors come from." />

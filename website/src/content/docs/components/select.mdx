@@ -1,0 +1,98 @@
+---
+title: Select
+description: A dropdown select that opens a Menu anchored below the trigger.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+Select is a dropdown for choosing one option from a list. The trigger matches
+the input spec — a 46dp cream well, 1px `outlineStrong` border, 12px radius
+and 14pt value — and pressing it opens a `Menu` anchored just below. While
+open, the trigger reads as focused: milk ground and a blueberry border. The
+chevron flips, and the chosen item shows its selected state inside the menu.
+
+## Import
+
+```tsx
+import { Select } from 'react-native-meowui';
+```
+
+## Usage
+
+The component is controlled: you own the value, and `onValueChange` reports
+the chosen option's `value`. Start from `null` to show the placeholder.
+
+```tsx
+const [size, setSize] = useState<string | null>(null);
+
+<Select
+  options={[
+    { label: 'Small', value: 'sm' },
+    { label: 'Medium', value: 'md' },
+    { label: 'Large', value: 'lg' },
+  ]}
+  value={size}
+  onValueChange={setSize}
+  placeholder="Choose a size"
+/>
+```
+
+Individual options can be disabled, and the `error` flag recolors the trigger
+border for form validation.
+
+```tsx
+<Select
+  options={[
+    { label: 'Standard', value: 'standard' },
+    { label: 'Express — unavailable', value: 'express', disabled: true },
+  ]}
+  value={shipping}
+  onValueChange={setShipping}
+  error
+/>
+```
+
+## How it opens
+
+On press, the trigger measures itself in window coordinates and opens the
+menu anchored just below it — 4pt of breathing room, and at least 200pt wide
+so short triggers still produce a readable menu. The menu is rendered through
+a portal above the rest of the UI, so it is not clipped by parent views. See
+[Portals](/concepts/portals/) for how that layering works and how to keep
+overlays from fighting each other.
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `options` | `SelectOption[]` | — | The choices, in display order. |
+| `value` | `string \| null` | — | Currently selected value, or `null` for the placeholder state. |
+| `onValueChange` | `(value: string) => void` | — | Called with the chosen option's `value`; the menu then closes. |
+| `placeholder` | `string` | `'Select…'` | Shown when no value is selected. |
+| `disabled` | `boolean` | `false` | Disables interaction, mutes the trigger. |
+| `error` | `boolean` | `false` | Renders the trigger border in `colors.error`. |
+| `accessibilityLabel` | `string` | — | Names the trigger; falls back to the selected label, then the placeholder. |
+| `style` | `StyleProp<ViewStyle>` | — | Trigger style overrides. |
+| `testID` | `string` | — | Test identifier. |
+
+Options are plain objects:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `label` | `string` | Text shown in the menu and on the trigger once selected. |
+| `value` | `string` | Reported through `onValueChange` when chosen. |
+| `disabled` | `boolean` | Grays the item out and blocks selection. |
+
+## Accessibility
+
+The trigger has role `button` with `accessibilityState` `{ disabled, expanded
+}`, so screen readers announce whether the menu is open. Its accessible name
+falls back to the selected option's label, then the placeholder; pass
+`accessibilityLabel` when that is not descriptive enough. Menu item
+semantics come from `Menu` itself.
+
+## See also
+
+<LinkCard title="Menu" href="/components/menu/" description="The overlay list Select is built on — usable directly too." />
+<LinkCard title="Portals" href="/concepts/portals/" description="How overlays escape clipping and stack above the UI." />
+<LinkCard title="Radio" href="/components/radio/" description="An always-visible alternative for short option lists." />

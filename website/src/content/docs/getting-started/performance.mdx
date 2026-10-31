@@ -1,0 +1,69 @@
+---
+title: Performance
+description: How MeowUI stays fast — architecture decisions and what they cost.
+---
+
+MeowUI is built so that speed is a property of the architecture, not an
+optimization pass. The decisions below are visible in the source and easy to
+verify in a profile.
+
+## Zero runtime dependencies
+
+The package contains no runtime dependencies at all. Everything is built on
+React Native primitives: `View`, `Text`, `Pressable`, `Animated`, `PanResponder`.
+
+Concretely, this means:
+
+- **No Reanimated / Gesture Handler** — no worklet runtime to boot, no Babel
+  plugin, no `react-native-gesture-handler` wrapper components, no library-level
+  JS thread work per frame.
+- **No Expo modules** — no `expo-blur`, `expo-linear-gradient`, or
+  `masked-view` transitively pulled into bare RN apps.
+- **Smaller install and bundle.** One package, no transitive library graph.
+
+## Native-driver animations only
+
+All motion — press feedback, overlay entrances, switch thumbs, the Tabs
+indicator, FAB stacks — uses RN's built-in `Animated` with `useNativeDriver:
+true` for opacity and transform. The JS thread is not involved per frame.
+
+The two documented exceptions are deliberate:
+
+- **Measured-height expansions** (`Collapsible`, `ListAccordion` bodies) animate
+  height on the JS driver — height is not a native-driveable property, and the
+  trees being expanded are small.
+- **Determinate `ProgressBar`** animates a measured width. The indeterminate
+  mode uses a native-driven transform loop.
+
+## Render architecture
+
+- **Frozen theme objects.** `createTheme()` output is `Object.freeze`d; a
+  theme's identity changes only when the mode or overrides actually change, so
+  `React.memo` boundaries hold.
+- **Split contexts.** The theme and the mode controller (`setMode`, `toggleMode`)
+  live in separate contexts. Components subscribed to `useTheme()` never
+  re-render because of controller identity churn.
+- **Memoized components.** Every public component is wrapped in `React.memo`.
+- **Hoisted styles.** Static styles are `StyleSheet.create`d at module scope;
+  theme-driven values are plain inline objects (cheap for the stylesheet
+  runtime, no cache machinery).
+
+## Press feedback without springs
+
+Interaction is communicated mechanically — the pressed key shifts down 1px,
+framed keys scale slightly (0.985–0.99), and the 2px warm cast collapses, plus
+a background tint on flat elements. No springs, no bounces: the shift is a
+plain style recomputation on `Pressable`, not an animation. The cast itself is
+one absolutely-positioned translucent view behind the control — no blur
+filter, no gradient layer. This is a design decision as much as a performance
+one: it reads tactile and costs nothing per frame.
+
+Floating layers are the one place blurred depth is used. `softElevation`
+emits the platform shadow styles (and Android `elevation`) only for menus,
+dialogs, sheets, snackbars and tooltips, which are few and short-lived.
+
+## What this buys you in practice
+
+A screen full of MeowUI components boots with zero additional native modules,
+zero Babel transforms, and no per-frame library work. On low-end Android
+devices this is usually the difference between "library demo" and "app-ready".

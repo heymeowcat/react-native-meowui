@@ -1,0 +1,76 @@
+---
+title: Color tokens
+description: The complete semantic color palette for light and dark mode.
+---
+
+The full token set. Mochi Press is oat-cream paper, espresso ink and blueberry
+primary, with soft semantic tone pairs (tinted well, tinted border, deep
+text) for badges. Every enabled `on*` color pairs with its fill at AA
+contrast; `onSurfaceSubtle` is reserved for disabled states and quiet
+chrome. Control borders (`outlineStrong`) clear 3:1 against the milk
+surface.
+
+## Light — oat paper
+
+| Token | Value | Token | Value |
+| --- | --- | --- | --- |
+| `background` | `#F8F0E3` | `primary` | `#3F528C` |
+| `surface` | `#FFFBF3` | `onPrimary` | `#FFF8ED` |
+| `surfaceMuted` | `#F1E6D4` | `primaryMuted` | `#E5E8F3` |
+| `surfaceActive` | `#E8D9C2` | `onPrimaryMuted` | `#2F3E6E` |
+| `inverseSurface` | `#3A322A` | `primaryActive` | `#324578` |
+| `inverseOnSurface` | `#FFF8EC` | `primaryOutline` | `#BEC7DF` |
+| `onSurface` | `#352F28` | | |
+| `onSurfaceMuted` | `#6B6053` | `success` | `#37704B` |
+| `onSurfaceSubtle` | `#8C7C67` | `onSuccess` | `#F5FFF7` |
+| | | `successMuted` | `#E3EFE2` |
+| `outline` | `#E7D9C2` | `onSuccessMuted` | `#2D5B3D` |
+| `outlineStrong` | `#A38F72` | `successOutline` | `#BCD8BD` |
+| | | `warning` | `#946312` |
+| `scrim` | `rgba(45,36,27,0.42)` | `onWarning` | `#FFF9EA` |
+| `shadow` | `rgba(62,52,42,0.18)` | `warningMuted` | `#F8EACB` |
+| `shadowSoft` | `rgba(62,52,42,0.08)` | `onWarningMuted` | `#6F4A0C` |
+| `focusRing` | `#3F528C` | `warningOutline` | `#E8D19C` |
+| | | `error` | `#AF3B31` |
+| `info` | `#2F6F73` | `onError` | `#FFF7F5` |
+| `onInfo` | `#F4FDFD` | `errorMuted` | `#F9E1DD` |
+| `infoMuted` | `#E0EEEE` | `onErrorMuted` | `#842B23` |
+| `onInfoMuted` | `#245457` | `errorOutline` | `#EDC1BA` |
+| `infoOutline` | `#B9D8D8` | | |
+
+Two shadow tokens, both warm and alpha-carrying: `shadow` is the translucent
+ink behind tactile controls (buttons, chips, segmented keys, the switch
+thumb), `shadowSoft` the quieter paper tone cast beneath in-flow surfaces.
+Borders are always 1px.
+
+## Dark — cocoa desk
+
+Warm cocoa ground: containers lift by brightness, borders deepen, the
+blueberry primary flips to pale periwinkle with espresso content, and
+semantic tones lighten while their wells darken.
+
+| Token | Value | Token | Value |
+| --- | --- | --- | --- |
+| `background` | `#211C17` | `primary` | `#9FB0E8` |
+| `surface` | `#2A241E` | `onPrimary` | `#1D2647` |
+| `surfaceMuted` | `#352D25` | `primaryMuted` | `#2D3350` |
+| `surfaceActive` | `#40362B` | `onPrimaryMuted` | `#C3CCEE` |
+| `inverseSurface` | `#F7F0E4` | `primaryActive` | `#B3C0F0` |
+| `inverseOnSurface` | `#332E28` | `primaryOutline` | `#46527C` |
+| `onSurface` | `#F5EDDE` | | |
+| `onSurfaceMuted` | `#C6B8A4` | `success` | `#86C89A` |
+| `onSurfaceSubtle` | `#9C8E7C` | `onSuccess` | `#0E2A1A` |
+| | | `successMuted` | `#20372A` |
+| `outline` | `#453A2F` | `onSuccessMuted` | `#A9DCB8` |
+| `outlineStrong` | `#8A745B` | `successOutline` | `#3C5E49` |
+| | | `warning` | `#EFC36C` |
+| `scrim` | `rgba(0,0,0,0.55)` | `onWarning` | `#3A2A0B` |
+| `shadow` | `rgba(0,0,0,0.4)` | `warningMuted` | `#3B2F1A` |
+| `shadowSoft` | `rgba(0,0,0,0.25)` | `onWarningMuted` | `#F2D79C` |
+| `focusRing` | `#9FB0E8` | `warningOutline` | `#6D551F` |
+| | | `error` | `#F19A8F` |
+| `info` | `#9ACBD4` | `onError` | `#3D1512` |
+| `onInfo` | `#102F35` | `errorMuted` | `#3E241F` |
+| `infoMuted` | `#23373A` | `onErrorMuted` | `#F5BFB8` |
+| `onInfoMuted` | `#BDE2E7` | `errorOutline` | `#6D3A32` |
+| `infoOutline` | `#3F6165` | | |

@@ -1,0 +1,120 @@
+---
+title: SegmentedButtons
+description: A bounded exclusive or multi choice control — a recessed tray with the active segment lifted onto milk paper.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+`SegmentedButtons` is a bounded choice control. Visually it is a recessed oat
+tray — `surfaceMuted` fill, 1px `outline`, 16px corners, 4dp padding — and the
+selected segment lifts onto milk paper with an `outlineStrong` border and a
+1px warm cast. No sliding thumb, no separators, no color floods.
+
+Single-select replaces the value; multi-select toggles membership in an
+array. Use it when all options should stay visible; use a select or chips
+when the choice space is open-ended.
+
+## Import
+
+```tsx
+import { SegmentedButtons } from 'react-native-meowui';
+```
+
+## Usage
+
+Single-select:
+
+```tsx
+function Density() {
+  const [value, setValue] = useState('comfortable');
+
+  return (
+    <SegmentedButtons
+      options={[
+        { value: 'compact', label: 'Compact' },
+        { value: 'comfortable', label: 'Comfortable' },
+      ]}
+      value={value}
+      onChange={setValue}
+    />
+  );
+}
+```
+
+Multi-select with icons:
+
+```tsx
+function DayPicker() {
+  const [days, setDays] = useState<string[]>([]);
+
+  return (
+    <SegmentedButtons
+      multi
+      options={[
+        { value: 'mo', label: 'M', icon: <Icon name="sunny" /> },
+        { value: 'tu', label: 'T' },
+        { value: 'we', label: 'W' },
+      ]}
+      value={days}
+      onChange={setDays}
+    />
+  );
+}
+```
+
+## Options
+
+Each entry in `options` is a `SegmentedOption`:
+
+```tsx
+interface SegmentedOption {
+  value: string;
+  label: string;
+  icon?: ReactNode;
+  disabled?: boolean;
+}
+```
+
+Segments share the track's width equally, render at a minimum height of 32,
+and use 12pt labels — weight 500 at rest, 600 when selected. The selected
+label ink is espresso; unselected labels sit muted. A segment can be disabled
+on its own; the `disabled` prop disables the whole control.
+
+## Single vs multi
+
+| Mode | `value` | `onChange` receives | Track role | Segment role |
+| --- | --- | --- | --- | --- |
+| Single | `string` | the selected `string` | `radiogroup` | `radio` |
+| Multi (`multi`) | `string[]` | the updated `string[]` | `none` | `button` |
+
+Pressing a selected segment in multi mode deselects it. In single mode
+there is always exactly one selection.
+
+## Props
+
+The props are a discriminated union on `multi` — TypeScript narrows `value`
+and `onChange` to the matching shape automatically.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `options` | `SegmentedOption[]` | — | Segments to render. |
+| `value` | `string` (single) / `string[]` (multi) | — | Selected value or values. |
+| `multi` | `true` | — | Set to enable multi-select; switches `value`/`onChange` to arrays. |
+| `onChange` | `(value: string) => void` (single) / `(value: string[]) => void` (multi) | — | Called with the new selection. |
+| `disabled` | `boolean` | `false` | Disables every segment. |
+| `accessibilityLabel` | `string` | — | Label announced for the group. |
+| `style` | `StyleProp<ViewStyle>` | — | Track style overrides. |
+| `testID` | `string` | — | Test identifier for the track. |
+
+## Accessibility
+
+In single mode the track is a `radiogroup` and each segment a `radio` with
+a `checked` state. In multi mode the track takes role `none` and segments
+announce as `button`s, since a radio group cannot express multiple checked
+items. Each segment is labeled by its `label`; give the group an
+`accessibilityLabel` so the whole control has context.
+
+## See also
+
+<LinkCard title="ToggleButton" href="/components/toggle-button/" description="The icon-only sibling for toolbars." />
+<LinkCard title="Chip" href="/components/chip/" description="Open-ended filter selection that wraps." />

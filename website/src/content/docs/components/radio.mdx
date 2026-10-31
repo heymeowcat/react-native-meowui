@@ -1,0 +1,110 @@
+---
+title: Radio
+description: Single-choice rows — standalone, or driven together by a RadioGroup.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+Radio is a single-choice option row. It works two ways: standalone, where you
+pass `selected` and `onValueChange` directly, or inside a `RadioGroup`, which
+lays the options out in a column and derives each row's checked state from the
+group's value. Inside a group, each `Radio` needs a `value`; the row is
+checked when its value matches, and pressing it reports that value back.
+Radios without a `value` never check inside a group.
+
+## Import
+
+```tsx
+import { Radio, RadioGroup } from 'react-native-meowui';
+```
+
+## Usage
+
+The group is controlled: you own the selected value, and `onValueChange`
+reports the tapped radio's `value`.
+
+```tsx
+const [size, setSize] = useState<string | null>('md');
+
+<RadioGroup value={size} onValueChange={setSize}>
+  <Radio label="Small" value="sm" />
+  <Radio label="Medium" value="md" />
+  <Radio label="Large" value="lg" />
+</RadioGroup>
+```
+
+Start from `null` when nothing should be selected initially.
+
+```tsx
+const [plan, setPlan] = useState<string | null>(null);
+
+<RadioGroup value={plan} onValueChange={setPlan}>
+  <Radio label="Free" value="free" />
+  <Radio label="Pro" value="pro" />
+  <Radio label="Team — disabled during the beta" value="team" disabled />
+</RadioGroup>
+```
+
+Standalone radios manage a single boolean-like selection and ignore the group
+context (there is none).
+
+```tsx
+const [notify, setNotify] = useState(false);
+
+<Radio
+  label="Only this device"
+  selected={notify}
+  onValueChange={() => setNotify(!notify)}
+/>
+```
+
+## RadioGroup
+
+`RadioGroup` renders its children in a column with an 8px gap and owns the
+selection state. Only `Radio` children participate — any other children
+render as-is.
+
+## Props
+
+### Radio
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `selected` | `boolean` | `false` | Selected state when used standalone; ignored inside a `RadioGroup`. |
+| `onValueChange` | `() => void` | — | Standalone only: called when the row is pressed. |
+| `value` | `string` | — | Option value — lets a `RadioGroup` drive selection for this radio. |
+| `disabled` | `boolean` | `false` | Disables interaction, mutes the circle and label. |
+| `label` | `ReactNode` | — | Content rendered beside the circle; the whole row is the tap target. |
+| `tone` | `RadioTone` | `'primary'` | Semantic color family for the selected state. |
+| `style` | `StyleProp<ViewStyle>` | — | Row style overrides. |
+| `testID` | `string` | — | Test identifier. |
+
+### RadioGroup
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `value` | `string \| null` | — | Currently selected option value; `null` when nothing is selected. |
+| `onValueChange` | `(value: string) => void` | — | Called with the tapped radio's `value`. |
+| `children` | `ReactNode` | — | The option rows. |
+| `style` | `StyleProp<ViewStyle>` | — | Container style overrides. |
+
+## Tones
+
+The `tone` prop colors the selected circle's fill — `'primary'` (default),
+`'success'`, `'warning'`, `'error'`, `'info'` — while the center dot is
+stamped in the family's `on` color. Unselected circles stay neutral milk
+paper with an `outlineStrong` border and a 1px cast, regardless of tone.
+
+## Accessibility
+
+Each row has role `radio` with `accessibilityState` `{ checked, disabled }`,
+and the group container has role `radiogroup`. The row reads its visible text
+content as its name, so string labels need nothing extra; with custom
+`label` content, wrap or label the row yourself. Rows keep a 44pt minimum
+height.
+
+## See also
+
+<LinkCard title="Checkbox" href="/components/checkbox/" description="Independent on/off choices instead of one-of-many." />
+<LinkCard title="Select" href="/components/select/" description="A dropdown for long option lists." />
+<LinkCard title="Color tokens" href="/theming/colors/" description="What selected rings and dots resolve to in both modes." />

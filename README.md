@@ -1,25 +1,13 @@
 # React Native MeowUI
 
-A modern, playful UI framework for React Native with comic-style animations.
+**Mochi Press — a zero-dependency UI kit for React Native, soft retro instruments pressed in cream and ink.**
 
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/49a336cd-a84a-4afe-aa61-17f647eef85a" width="250" alt="Light Mode" />
-  <img src="https://github.com/user-attachments/assets/8cb31c2a-8f3a-49ce-8b54-cf78ad274d31" width="250" alt="Dark Mode" />
-</p>
-
-## Installation
-
-```bash
-npm install react-native-meowui
-```
-
-### Peer Dependencies
-
-```bash
-npm install react-native-reanimated react-native-gesture-handler expo-linear-gradient expo-blur @react-native-masked-view/masked-view
-```
-
-## Quick Start
+MeowUI is a complete component library for apps that should feel warm, tactile
+and quick — oat-cream paper, espresso ink, blueberry keys, pill controls and
+soft paper casts. Hairline borders over heavy shadows, a single restrained
+accent, quiet motion, and a semantic token system that works in any app out of
+the box. Subtle retro, a little cute, and engineered to stay out of your frame
+budget.
 
 ```tsx
 import { MeowProvider, Button, Card, Text } from 'react-native-meowui';
@@ -27,188 +15,228 @@ import { MeowProvider, Button, Card, Text } from 'react-native-meowui';
 export default function App() {
   return (
     <MeowProvider>
-      <Card variant="elevated">
-        <Text variant="headline">Welcome to MeowUI</Text>
-        <Button onPress={() => console.log('Pressed!')}>
-          Get Started
-        </Button>
+      <Card style={{ padding: 16, gap: 12 }}>
+        <Text variant="headline">Welcome back</Text>
+        <Text variant="body">Your workspace is up to date.</Text>
+        <Button onPress={openWorkspace}>Open workspace</Button>
       </Card>
     </MeowProvider>
   );
 }
 ```
 
-## Theme
+[![CI](https://github.com/heymeowcat/react-native-meowui/actions/workflows/ci.yml/badge.svg)](https://github.com/heymeowcat/react-native-meowui/actions/workflows/ci.yml)
+[![Docs](https://github.com/heymeowcat/react-native-meowui/actions/workflows/website.yml/badge.svg)](https://heymeowcat.github.io/react-native-meowui/)
 
-MeowUI supports light and dark modes with automatic system detection.
+## Why MeowUI
+
+- **Zero runtime dependencies.** The only peer dependencies are `react` and
+  `react-native`. No Reanimated, no Gesture Handler, no Expo modules, no Babel
+  plugin, nothing to configure in your host app. Install and go.
+- **Fast by construction.** Every component is memoized, static styles are
+  hoisted to module scope, themes are frozen objects, and animations run on the
+  native driver (opacity/transform only). No worklet runtime, no JS bridge
+  chatter, no library-level re-render storms.
+- **A look you can't mistake.** Oat-cream grounds, espresso ink, 1px warm
+  hairlines, a 2px paper cast under every key and blurred `softElevation` only
+  for floating layers. Fraunces headlines over DM Sans body and DM Mono
+  metadata, with a blueberry primary and soft semantic pairs. Light and dark
+  palettes are both tuned for AA contrast.
+- **Complete.** 35+ components covering actions, inputs, feedback, overlays,
+  data display and navigation — typed end to end, with accessibility roles and
+  states wired through.
+- **2026 toolchain.** Strict TypeScript, dual CJS/ESM output with declarations,
+  ESLint flat config, Jest + Testing Library tests, GitHub Actions CI.
+
+## Installation
+
+```bash
+npm install react-native-meowui
+# or
+yarn add react-native-meowui
+# or
+pnpm add react-native-meowui
+```
+
+Requires `react >= 18.2` and `react-native >= 0.74`. Works with the New
+Architecture (Fabric) — no compatibility shims needed.
+
+## Theming
+
+### Light and dark mode
+
+`MeowProvider` follows the OS color scheme by default:
+
+```tsx
+<MeowProvider>{/* your app */}</MeowProvider>
+
+<MeowProvider mode="dark">{/* force dark */}</MeowProvider>
+```
+
+Switch modes at runtime with the controller:
+
+```tsx
+import { useThemeController, Button } from 'react-native-meowui';
+
+function ThemeToggle() {
+  const { mode, toggleMode } = useThemeController();
+  return <Button variant="ghost" onPress={toggleMode}>{mode === 'dark' ? 'Light' : 'Dark'} mode</Button>;
+}
+```
+
+### Overrides
+
+Every token is overridable — colors, the type scale, spacing, radii, control
+metrics, motion durations and stacking order:
 
 ```tsx
 import { MeowProvider } from 'react-native-meowui';
 
-// Auto-detect system theme
-<MeowProvider theme="auto">
-  {/* Your app */}
-</MeowProvider>
-
-// Force dark mode
-<MeowProvider theme="dark">
-  {/* Your app */}
+<MeowProvider
+  overrides={{
+    colors: { primary: '#2F6B4F', onPrimary: '#FFFFFF' },
+    radii: { md: 9, lg: 14 },
+    typography: { body: { fontSize: 16, lineHeight: 23 } },
+    fonts: {
+      regular: 'DMSans_400Regular',
+      medium: 'DMSans_500Medium',
+      semibold: 'DMSans_600SemiBold',
+      displaySemibold: 'Fraunces_600SemiBold',
+      monoRegular: 'DMMono_400Regular',
+    },
+  }}
+>
+  {children}
 </MeowProvider>
 ```
 
-### Custom Theme
+### Fonts
+
+The kit's three voices are Fraunces, DM Sans and DM Mono. Load them (for
+example with `@expo-google-fonts`) and map the family names through
+`theme.fonts`: sans slots (`regular` / `medium` / `semibold`) carry body and
+controls, display slots (`displayRegular` / `displayMedium` /
+`displaySemibold`) carry `display`, `headline`, `title` and `subtitle`, and
+mono slots (`monoRegular` / `monoBold`) carry `overline` and `mono`. Any
+unmapped slot falls back to the system font.
+
+### Fully custom themes
 
 ```tsx
-import { MeowProvider, createTheme } from 'react-native-meowui';
+import { createTheme, MeowProvider } from 'react-native-meowui';
 
-const customTheme = createTheme({
-  colors: {
-    primary: '#8B5CF6',
-    secondary: '#EC4899',
-  },
-});
+const brand = createTheme({ mode: 'dark', colors: { primary: '#C9A227', onPrimary: '#1A1608' } });
 
-<MeowProvider theme={customTheme}>
-  {/* Your app */}
-</MeowProvider>
+<MeowProvider theme={brand}>{children}</MeowProvider>
 ```
+
+Read the token grammar in the [theming docs](https://heymeowcat.github.io/react-native-meowui/theming/overview/).
 
 ## Components
 
-### Core
+| Area | Components |
+| --- | --- |
+| **Primitives** | `Text`, `Surface`, `Divider`, `Pressable`, `Portal` / `PortalHost`, `Icon` (+ `setIconRenderer`) |
+| **Actions** | `Button`, `IconButton`, `FAB`, `FABGroup`, `Chip`, `SegmentedButtons`, `ToggleButton` / `ToggleButtonGroup` |
+| **Inputs** | `TextInput`, `Checkbox`, `Radio` / `RadioGroup`, `Switch`, `Slider`, `Searchbar`, `Select` |
+| **Feedback** | `ActivityIndicator`, `ProgressBar`, `Skeleton`, `Badge`, `Banner`, `Snackbar`, `Toast` (`ToastProvider` + `useToast`) |
+| **Overlays** | `Dialog`, `AlertDialog`, `Modal`, `BottomSheet`, `Menu` / `MenuItem`, `Tooltip` |
+| **Display** | `Avatar`, `Card` (`CardCover`, `CardTitle`, `CardContent`, `CardActions`), `List` (`ListSection`, `ListItem`, `ListAccordion`), `Collapsible`, `DataTable` (`DataTableHeader`, `DataTableCell`, `DataTableRow`, `DataTablePagination`) |
+| **Navigation** | `Appbar` (`AppbarContent`, `AppbarAction`, `AppbarBackAction`), `Tabs`, `BottomNavigation`, `Drawer` (`DrawerSection`, `DrawerItem`) |
 
-| Component | Description |
-|-----------|-------------|
-| `Button` | Primary action button with variants: filled, outlined, ghost |
-| `Card` | Container with elevation and border styling |
-| `Text` | Typography components for all text variants |
-| `Input` | Text input with label and validation support |
-| `Surface` | Base container with theming |
-
-### Form Controls
-
-| Component | Description |
-|-----------|-------------|
-| `Checkbox` | Animated checkbox |
-| `RadioButton` | Radio button for single selection |
-| `Switch` | Toggle switch |
-| `SegmentedButtons` | Button group for selection |
-| `Combobox` | Dropdown select |
-| `HelperText` | Form field help/error text |
-
-### Feedback
-
-| Component | Description |
-|-----------|-------------|
-| `Snackbar` | Bottom notification bar |
-| `Toast` | Lightweight notification with queue support |
-| `Banner` | Full-width alert with actions |
-| `ActivityIndicator` | Animated loading spinner |
-| `ProgressBar` | Progress indicator |
-| `AlertDialog` | Modal alert with animations |
-
-### Navigation
-
-| Component | Description |
-|-----------|-------------|
-| `Appbar` | Top app bar with actions |
-| `FAB` | Floating action button |
-| `FABGroup` | Expandable FAB with multiple actions |
-| `Menu` | Dropdown menu |
-| `Modal` | Animated modal overlay |
-| `BottomSheet` | Gesture-driven bottom sheet |
-| `Tooltip` | Press/long-press tooltip |
-
-### Display
-
-| Component | Description |
-|-----------|-------------|
-| `Avatar` | User avatar with border |
-| `Badge` | Notification badge |
-| `Chip` | Selection chip |
-| `Divider` | Visual separator |
-| `List` | List with sections and accordions |
-| `Collapsible` | Animated collapsible container |
-| `IconButton` | Icon-only button |
-| `ToggleButton` | Toggle with group support |
-
-### Decorative
-
-| Component | Description |
-|-----------|-------------|
-| `GradientBackground` | Full-screen gradient |
-| `PencilBurst` | Comic-style click animation |
-
-## Button Example
+### Actions
 
 ```tsx
-import { Button } from 'react-native-meowui';
+<Button variant="solid">Primary</Button>
+<Button variant="tonal" tone="success">Approved</Button>
+<Button variant="outline">Secondary</Button>
+<Button variant="ghost">Tertiary</Button>
+<Button loading>Processing</Button>
 
-<Button variant="filled" onPress={handlePress}>
-  Primary Action
-</Button>
-
-<Button variant="outlined" onPress={handlePress}>
-  Secondary
-</Button>
-
-<Button variant="ghost" onPress={handlePress}>
-  Tertiary
-</Button>
-
-// Disable the pencil burst animation
-<Button enablePencilBurst={false} onPress={handlePress}>
-  No Animation
-</Button>
-```
-
-## Toast Example
-
-```tsx
-import { ToastProvider, useToast, Button } from 'react-native-meowui';
-
-function App() {
-  return (
-    <ToastProvider>
-      <MyScreen />
-    </ToastProvider>
-  );
-}
-
-function MyScreen() {
-  const { show } = useToast();
-  
-  return (
-    <Button onPress={() => show({ message: 'Saved!', type: 'success' })}>
-      Save
-    </Button>
-  );
-}
-```
-
-## FAB Group Example
-
-```tsx
-import { FABGroup } from 'react-native-meowui';
+<IconButton icon={<Icon name="settings" />} accessibilityLabel="Settings" />
 
 <FABGroup
   icon={<Icon name="add" />}
   actions={[
-    { icon: <Icon name="camera" />, label: 'Photo', onPress: handlePhoto },
-    { icon: <Icon name="document" />, label: 'Document', onPress: handleDoc },
+    { icon: <Icon name="camera" />, label: 'Camera', onPress: openCamera },
+    { icon: <Icon name="document" />, label: 'Document', onPress: openDocument },
   ]}
 />
 ```
 
-## Hooks
+Icons work with any icon library. Register a renderer once and use the `Icon`
+adapter, or pass any element to `icon` props directly:
 
-| Hook | Description |
-|------|-------------|
-| `useTheme` | Access current theme and toggle dark mode |
-| `usePencilBurst` | Trigger pencil burst animation programmatically |
-| `useAnimatedPress` | Press animation utilities |
-| `useGradient` | Gradient color utilities |
+```tsx
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { setIconRenderer } from 'react-native-meowui';
+
+setIconRenderer(Ionicons);
+```
+
+### Inputs
+
+```tsx
+<TextInput label="Email" placeholder="you@example.com" helperText="Work address" />
+<TextInput label="Password" error helperText="At least 8 characters" secureTextEntry />
+
+<Checkbox checked={agreed} onValueChange={setAgreed} label="I agree to the terms" />
+<RadioGroup value={plan} onValueChange={setPlan}>
+  <Radio value="free" label="Free" />
+  <Radio value="pro" label="Pro" />
+</RadioGroup>
+<Switch checked={dark} onValueChange={setDark} accessibilityLabel="Dark mode" />
+<Slider value={volume} onValueChange={setVolume} min={0} max={1} step={0.05} />
+```
+
+### Overlays and feedback
+
+Every floating component renders through the kit's `Portal` system and layers by
+`theme.zIndex` — dialogs never cover toasts, menus never cover dialogs:
+
+```tsx
+const { show } = useToast();
+show({ message: 'Saved', tone: 'success' });
+
+<Dialog visible={open} onDismiss={close} title="Delete project"
+  actions={<><Button variant="ghost" onPress={close}>Cancel</Button><Button tone="error" onPress={destroy}>Delete</Button></>}>
+  <Text>This cannot be undone.</Text>
+</Dialog>
+
+<AlertDialog visible tone="error" title="Delete?" message="This action is permanent." ... />
+<BottomSheet visible={sheet} onDismiss={close}><FilterPanel /></BottomSheet>
+```
+
+## Performance notes
+
+- **No animation library.** Press feedback is a 1px shift and a collapsed cast
+  recomputed on `Pressable`; entrances and slides use RN `Animated` with the
+  native driver. Nothing runs on the JS thread per frame except measured-height
+  expansions and the determinate progress fill (both documented at the call
+  site).
+- **Casts are cheap.** In-flow depth is one absolutely-positioned translucent
+  view behind the control — no blur filter, no gradient. Platform shadows are
+  reserved for floating layers through `softElevation`.
+- **No context re-render storms.** The theme object is frozen and its identity
+  only changes when the mode or overrides actually change; the controller lives
+  in a separate context from the theme itself.
+- **Memoized everything.** All public components are `React.memo`'d; static
+  styles are module-level `StyleSheet.create`.
+
+## Documentation
+
+Full documentation lives at **[heymeowcat.github.io/react-native-meowui](https://heymeowcat.github.io/react-native-meowui/)**
+(built with Astro Starlight — guides, theming reference, and a page for every component).
+
+- [Contributing](CONTRIBUTING.md) — conventions every component follows
+- [Changelog](CHANGELOG.md)
+
+## Example
+
+An Expo kitchen-sink showcase lives in [`example/`](example) — four screens
+(Kit, Forms, Layers, Tokens) covering every component, light and dark. See
+[example/README.md](example/README.md) to run it.
 
 ## License
 
-MIT
+[MIT](LICENSE)

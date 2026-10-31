@@ -1,0 +1,99 @@
+---
+title: Tabs
+description: A quiet tab bar with fixed and scrollable variants and an animated indicator.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+`Tabs` renders the bar only — a 48px row of tab presses with a hairline bottom
+border and a 2px `primary` indicator on the active tab. The content region
+below is yours to compose. Use `fixed` for a handful of tabs, `scrollable` when
+labels overflow.
+
+## Import
+
+```tsx
+import { Tabs } from 'react-native-meowui';
+```
+
+## Usage
+
+```tsx
+const [tab, setTab] = useState('all');
+
+<Tabs
+  tabs={[
+    { value: 'all', label: 'All' },
+    { value: 'unread', label: 'Unread' },
+    { value: 'sent', label: 'Sent' },
+  ]}
+  value={tab}
+  onChange={setTab}
+/>
+```
+
+```tsx
+// Icons and a disabled tab.
+<Tabs
+  tabs={[
+    { value: 'day', label: 'Day', icon: <Icon name="sunny" /> },
+    { value: 'week', label: 'Week', icon: <Icon name="cloudy" /> },
+    { value: 'notes', label: 'Notes', disabled: true },
+  ]}
+  value={tab}
+  onChange={setTab}
+  accessibilityLabel="Forecast range"
+/>
+```
+
+## Variants
+
+| Variant | Layout | Indicator |
+| --- | --- | --- |
+| `fixed` (default) | Tabs stretch evenly across the width | 2px underline slides between tabs |
+| `scrollable` | Tabs size to their content in a horizontal `ScrollView` | Static 2px underline on the active tab — no animation |
+
+## Behavior
+
+- The fixed indicator animates `translateX` on the native driver over
+  `motion.durationFast`. It snaps into place on first measure so it never
+  slides in from the edge.
+- Tab icons receive the resolved color — muted when inactive, `primary` when
+  active, subtle when disabled.
+- When `testID` is set, each tab appends its `value`, giving test IDs like
+  `${testID}-unread`.
+
+## Props
+
+### Tabs props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `tabs` | `TabItem[]` | — | Required. Tab descriptors. |
+| `value` | `string` | — | Required. The selected tab's `value`. |
+| `onChange` | `(value: string) => void` | — | Required. Called with the newly selected tab's `value`. |
+| `variant` | `'fixed' \| 'scrollable'` | `'fixed'` | Layout and indicator behavior. |
+| `accessibilityLabel` | `string` | — | Label for the tablist. |
+| `style` | `StyleProp<ViewStyle>` | — | Container style overrides. |
+| `testID` | `string` | — | Test identifier; each tab appends its `value`. |
+
+### TabItem props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `value` | `string` | — | Required. Stable identifier reported through `onChange`. |
+| `label` | `string` | — | Required. Label under the icon. |
+| `icon` | `ReactNode` | — | Leading content — icon, anything; `color` is injected when supported. |
+| `disabled` | `boolean` | `false` | Disables the tab. |
+
+## Accessibility
+
+The bar is role `tablist`, labelled by `accessibilityLabel`. Each tab is role
+`tab` with `accessibilityState` `{ selected, disabled }`, announced by its
+`label`. Disabled tabs report `disabled` and ignore presses.
+
+## See also
+
+<LinkCard title="Bottom navigation" href="/components/bottom-navigation/" description="The app-level counterpart for top-level destinations." />
+<LinkCard title="Segmented buttons" href="/components/segmented-buttons/" description="Mutually exclusive choices without an indicator." />
+<LinkCard title="Tokens" href="/theming/tokens/" description="The motion token behind the indicator animation." />

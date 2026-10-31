@@ -1,0 +1,106 @@
+---
+title: Appbar
+description: The kit's top bar — a 56px Surface composed from back, content and action slots.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+`Appbar` is the top bar of a screen: a 56px milk-paper `Surface` with square
+corners, ruled along its bottom edge by a hairline. Compose it from three
+slots — `AppbarBackAction`, `AppbarContent` and `AppbarAction`. There is no
+navigation prop; the consumer owns routing.
+
+## Import
+
+```tsx
+import { Appbar, AppbarContent, AppbarAction, AppbarBackAction } from 'react-native-meowui';
+```
+
+## Usage
+
+```tsx
+<Appbar>
+  <AppbarBackAction onPress={goBack} />
+  <AppbarContent title="Inbox" subtitle="3 unread" />
+  <AppbarAction icon={<Icon name="search" />} onPress={openSearch} accessibilityLabel="Search" />
+  <AppbarAction icon={<Icon name="ellipsis-vertical" />} onPress={openMenu} accessibilityLabel="More options" />
+</Appbar>
+```
+
+```tsx
+// A title-only bar without navigation.
+<Appbar>
+  <AppbarContent title="Settings" />
+</Appbar>
+```
+
+## Composition
+
+| Slot | Purpose |
+| --- | --- |
+| `AppbarBackAction` | Navigation back — renders a built-in chevron-left glyph. |
+| `AppbarContent` | Flexible title block; takes all remaining horizontal space. |
+| `AppbarAction` | Compact icon action; wraps a ghost `IconButton` at `sm` size. |
+
+## Behavior
+
+- The bar is a 56px `Surface` with `radius="none"`, no full outline, and a
+  1px `outline` rule along its bottom edge.
+- `AppbarContent` flexes between its neighbors; the title and subtitle each
+  clamp to one line.
+- `AppbarAction` and `AppbarBackAction` inject the resolved `color` and `size`
+  into icon elements that accept them, so actions stay consistent without
+  manual styling.
+
+## Props
+
+### Appbar props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `children` | `ReactNode` | — | Bar content, usually the slot components. |
+| `elevation` | `0 \| 1 \| 2` | `0` | Optional paper-cast depth, passed to `Surface` as `cast`. Toolbars usually stay at `0`. |
+| `style` | `StyleProp<ViewStyle>` | — | Container style overrides. |
+| `testID` | `string` | — | Test identifier. |
+
+### AppbarContent props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `title` | `string` | — | Required. Title line, clamped to one row. |
+| `subtitle` | `string` | — | Optional secondary line under the title. |
+| `leading` | `ReactNode` | — | Leading content before the title column (rare — back actions usually sit outside). |
+| `style` | `StyleProp<ViewStyle>` | — | Container style overrides. |
+| `testID` | `string` | — | Test identifier. |
+
+### AppbarAction props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `icon` | `ReactNode` | — | Required. Icon content — resolved `color` and `size` are injected when supported. |
+| `onPress` | `() => void` | — | Press handler. |
+| `accessibilityLabel` | `string` | — | Accessible name. Required when the icon alone is ambiguous. |
+| `disabled` | `boolean` | `false` | Disables the action. |
+| `testID` | `string` | — | Test identifier. |
+
+### AppbarBackAction props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `onPress` | `() => void` | — | Press handler. |
+| `accessibilityLabel` | `string` | `'Back'` | Accessible name. |
+| `disabled` | `boolean` | `false` | Disables the action. |
+| `testID` | `string` | — | Test identifier. |
+
+## Accessibility
+
+`AppbarAction` and `AppbarBackAction` wrap ghost `IconButton`s, so both are
+role `button` press targets. `AppbarBackAction` announces as `Back` by default.
+Give every `AppbarAction` an `accessibilityLabel` — icon-only actions have no
+text fallback.
+
+## See also
+
+<LinkCard title="Icon button" href="/components/icon-button/" description="What AppbarAction and AppbarBackAction wrap." />
+<LinkCard title="Icon" href="/components/icon/" description="Registering the icon renderer actions rely on." />
+<LinkCard title="Bottom navigation" href="/components/bottom-navigation/" description="The app-level counterpart for top-level destinations." />

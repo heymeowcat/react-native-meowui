@@ -1,0 +1,82 @@
+---
+title: Checkbox
+description: A controlled checkbox with a built-in check glyph and one full-row tap target.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+Checkbox is a controlled on/off box with a built-in check glyph — no icon
+library needed. The entire row (box and label) is a single tappable target
+with a 44pt minimum height, which keeps group lists comfortable to tap.
+The 20px box rests on milk paper with a 1px `outlineStrong` border and a
+1px cast; checked, it sinks into the tone fill and its cast collapses.
+Disabled boxes keep a muted fill instead of fading out.
+
+## Import
+
+```tsx
+import { Checkbox } from 'react-native-meowui';
+```
+
+## Usage
+
+The component is controlled: you own the state, and `onValueChange` hands you
+the next value.
+
+```tsx
+const [agreed, setAgreed] = useState(false);
+
+<Checkbox
+  checked={agreed}
+  onValueChange={setAgreed}
+  label="I agree to the terms of service"
+/>
+```
+
+Labels accept any node, and the checked fill follows `tone`.
+
+```tsx
+const [subscribed, setSubscribed] = useState(true);
+
+<Checkbox
+  checked={subscribed}
+  onValueChange={setSubscribed}
+  tone="success"
+  label="Email me release notes"
+/>
+
+<Checkbox checked={false} onValueChange={setBeta} label="Join the beta" />
+<Checkbox checked label="Managed by your organization" disabled />
+```
+
+## Tones
+
+The `tone` prop selects the checked fill's color family — `'primary'`
+(default), `'success'`, `'warning'`, `'error'`, `'info'`. Unchecked boxes stay
+neutral regardless of tone.
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `checked` | `boolean` | — | Whether the box is checked. |
+| `onValueChange` | `(checked: boolean) => void` | — | Called with the next checked state when the row is pressed. |
+| `disabled` | `boolean` | `false` | Disables interaction, mutes the box and label. |
+| `label` | `ReactNode` | — | Content rendered beside the box; the whole row is the tap target. |
+| `tone` | `CheckboxTone` | `'primary'` | Semantic color family for the checked fill. |
+| `style` | `StyleProp<ViewStyle>` | — | Row style overrides. |
+| `testID` | `string` | — | Test identifier. |
+
+## Accessibility
+
+Role `checkbox` with `accessibilityState` `{ checked, disabled }`. When
+`label` is a string it becomes the accessible name; for custom content pass
+your own label through the surrounding tree. The 44pt minimum row height
+applies to the accessible element too, so the whole label area toggles the
+box.
+
+## See also
+
+<LinkCard title="Radio" href="/components/radio/" description="Single choice within a group of options." />
+<LinkCard title="Switch" href="/components/switch/" description="An on/off toggle for immediate settings." />
+<LinkCard title="Color tokens" href="/theming/colors/" description="What checked fills and muted states resolve to in both modes." />

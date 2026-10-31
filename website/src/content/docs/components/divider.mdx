@@ -1,0 +1,64 @@
+---
+title: Divider
+description: A 1px hairline separator — the quiet workhorse of the kit's list layouts.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+`Divider` draws a single hairline separator. It is deliberately thin —
+`StyleSheet.hairlineWidth` — and defaults to `colors.outline`, so lines
+group content without adding visual weight.
+
+Horizontal dividers span their container's width; vertical dividers span
+its height. Both stretch through `alignSelf`, so place them in a container
+with a defined cross axis.
+
+## Import
+
+```tsx
+import { Divider } from 'react-native-meowui';
+```
+
+## Usage
+
+```tsx
+{/* Between list rows */}
+<View>
+  <Text>First item</Text>
+  <Divider />
+  <Text>Second item</Text>
+</View>
+
+{/* Inset to align with list content */}
+<Divider inset={16} />
+
+{/* Between side-by-side panes */}
+<View style={{ flexDirection: 'row' }}>
+  <Text>Left</Text>
+  <Divider vertical />
+  <Text>Right</Text>
+</View>
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `vertical` | `boolean` | `false` | Vertical dividers span their container's height. |
+| `inset` | `number` | `0` | Indent the line from the leading edge (e.g. to align with list content). |
+| `color` | `string` | `colors.outline` | Line color. |
+| `style` | `StyleProp<ViewStyle>` | — | Style overrides. |
+
+`inset` uses `marginStart`, so the indent follows the reading direction and
+matches right-to-left layouts automatically.
+
+## Accessibility
+
+Dividers are decorative. They render a plain view with no role, so screen
+readers skip them — grouping is communicated by your layout and headings,
+not by the line itself.
+
+## See also
+
+<LinkCard title="Surface" href="/components/surface/" description="Outlined surfaces as an alternative way to separate content." />
+<LinkCard title="Color tokens" href="/theming/colors/" description="What the default `outline` line color resolves to in both modes." />

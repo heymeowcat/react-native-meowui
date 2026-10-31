@@ -1,0 +1,98 @@
+---
+title: Text
+description: The kit's typographic primitive — every string on screen renders through it.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+`Text` is the kit's typographic primitive. Everything that renders text goes
+through it so hierarchy, rhythm and font families stay consistent: pick a
+`variant` from the theme's type scale instead of setting font sizes by hand,
+and let `tone` handle color.
+
+## Import
+
+```tsx
+import { Text } from 'react-native-meowui';
+```
+
+## Usage
+
+```tsx
+<Text variant="display">Account</Text>
+<Text variant="body">Your plan renews on March 1.</Text>
+<Text variant="caption" tone="error">Card declined.</Text>
+
+<Text variant="label" align="center">CENTERED</Text>
+
+{/* Explicit color wins over tone */}
+<Text color="#3F528C">Sponsored</Text>
+
+{/* Weight override picks the matching font family */}
+<Text weight="600">Highlighted</Text>
+```
+
+## Variants
+
+The type scale is a closed set. Sizes step down gently with `600` as the
+heaviest weight; `overline` is the only transformed variant.
+
+| Variant | Size / line | Weight | Voice | Notes |
+| --- | --- | --- | --- | --- |
+| `display` | 32 / 38 | 600 | Fraunces | Tightest letter spacing. |
+| `headline` | 24 / 30 | 600 | Fraunces | |
+| `title` | 15 / 20 | 600 | Fraunces | Also used by card and dialog titles. |
+| `subtitle` | 13 / 18 | 600 | Fraunces | |
+| `bodyLarge` | 16 / 24 | 400 | DM Sans | |
+| `body` | 14 / 21 | 400 | DM Sans | Default variant. |
+| `label` | 12 / 16 | 500 | DM Sans | |
+| `caption` | 11 / 16 | 400 | DM Sans | |
+| `overline` | 10 / 14 | 500 | DM Mono | Uppercase, wide tracking. |
+| `mono` | 11 / 15 | 400 | DM Mono | Metadata, counters, code. |
+
+These are the default family names. Apps load the fonts and map them through
+`theme.fonts`; any slot left unmapped falls back to the system font.
+
+## Font families by voice
+
+Each variant resolves through the font slots for its voice. Leave a slot
+undefined to fall back to the system font; display slots additionally fall
+back to their sans counterparts.
+
+| Voice | Variants | Font slots |
+| --- | --- | --- |
+| Display | `display`, `headline`, `title`, `subtitle` | `displayRegular` / `displayMedium` / `displaySemibold` |
+| Body | `bodyLarge`, `body`, `label`, `caption` | `regular` / `medium` / `semibold` |
+| Mono | `overline`, `mono` | `monoRegular` (400) / `monoBold` (500+) |
+
+The effective weight is `weight` if given, otherwise the variant's own
+weight, otherwise `400`. Setting `weight` therefore changes both emphasis
+and family in one step — a `display` at `weight="400"` picks
+`displayRegular`.
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `variant` | `TypographyVariantName` | `'body'` | Typographic variant from the theme's type scale. |
+| `tone` | `'primary' \| 'success' \| 'warning' \| 'error' \| 'info' \| 'neutral'` | `'neutral'` | Semantic tone for the text color. Neutral text uses `colors.onSurface`. |
+| `color` | `string` | — | Explicit color — wins over `tone`. |
+| `align` | `TextStyle['textAlign']` | — | Text alignment. |
+| `weight` | `TextStyle['fontWeight']` | — | Override the variant's font weight. |
+
+All other React Native `TextProps` — `style`, `numberOfLines`,
+`ellipsizeMode` and so on — pass through unchanged.
+
+## Accessibility
+
+`Text` renders a plain text node, so screen readers announce its content
+directly. Keep meaningful text in the tree rather than hiding it behind
+decorative `accessibilityLabel` overrides, and reach for variants over
+manual font sizes so the visual hierarchy and the announced hierarchy
+agree.
+
+## See also
+
+<LinkCard title="Icon" href="/components/icon/" description="The glyph counterpart for icon fonts and icon components." />
+<LinkCard title="Button" href="/components/button/" description="Labels its actions through Text at fixed weights." />
+<LinkCard title="Color tokens" href="/theming/colors/" description="What each tone resolves to in light and dark mode." />

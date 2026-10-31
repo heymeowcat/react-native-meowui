@@ -1,0 +1,141 @@
+---
+title: Data table
+description: A composed table — header row, numeric cells, selectable rows and pagination.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+The data table family renders small, static datasets. `DataTable` is the shell
+— an outlined `Surface` — composed of `DataTableHeader`, `DataTableRow`,
+`DataTableCell` and `DataTablePagination`. It does not sort, virtualize or
+fetch; the consumer owns the data and the selection state.
+
+## Import
+
+```tsx
+import { DataTable, DataTableHeader, DataTableCell, DataTableRow, DataTablePagination } from 'react-native-meowui';
+```
+
+## Usage
+
+```tsx
+const [page, setPage] = useState(1);
+const [selected, setSelected] = useState<string[]>([]);
+
+// pageRows: the rows for the current page.
+const toggle = (id: string) =>
+  setSelected((prev) =>
+    prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+  );
+
+<DataTable>
+  <DataTableHeader>
+    <DataTableCell width={48} flex={0}>#</DataTableCell>
+    <DataTableCell>Team</DataTableCell>
+    <DataTableCell numeric>Points</DataTableCell>
+  </DataTableHeader>
+  {pageRows.map((row) => (
+    <DataTableRow
+      key={row.id}
+      onPress={() => toggle(row.id)}
+      selected={selected.includes(row.id)}
+    >
+      <DataTableCell width={48} flex={0}>{row.rank}</DataTableCell>
+      <DataTableCell>{row.name}</DataTableCell>
+      <DataTableCell numeric>{row.points}</DataTableCell>
+    </DataTableRow>
+  ))}
+  <DataTablePagination
+    page={page}
+    numberOfPages={totalPages}
+    onPageChange={setPage}
+    label={`${rangeStart}–${rangeEnd} of ${totalRows}`}
+  />
+</DataTable>
+```
+
+## Composition
+
+| Slot | Purpose |
+| --- | --- |
+| `DataTableHeader` | The muted column-label row; fill it with `DataTableCell`s. |
+| `DataTableRow` | A body row with a hairline top border; pressable with `onPress`. |
+| `DataTableCell` | A column cell; `numeric` cells right-align with tabular numerals. |
+| `DataTablePagination` | The footer row: count label plus prev/next buttons. |
+
+## Behavior
+
+- The table is an outlined `Surface` with `radius="xl"` (16) and
+  `overflow: 'hidden'`, so row fills clip to the corners.
+- Cells render muted `label` text (11pt), one line each. `numeric` cells
+  right-align and switch to the mono voice with tabular numerals.
+- Cells default to `flex: 1`. Combine `width` with `flex={0}` for fixed-only
+  columns.
+- `selected` rows rest on the oat `surfaceMuted` ground; press feedback is a
+  `surfaceActive` tint.
+- Pagination buttons disable at the bounds — previous at `page <= 1`, next at
+  `page >= numberOfPages` — and the label defaults to `page of numberOfPages`.
+
+## Props
+
+### DataTable props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `children` | `ReactNode` | — | Table content: header, rows and pagination. |
+| `style` | `StyleProp<ViewStyle>` | — | Container style overrides. |
+| `testID` | `string` | — | Test identifier. |
+
+### DataTableHeader props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `children` | `ReactNode` | — | Cells for the column-label row. |
+| `style` | `StyleProp<ViewStyle>` | — | Container style overrides. |
+| `testID` | `string` | — | Test identifier. |
+
+### DataTableCell props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `children` | `ReactNode` | — | Cell content. |
+| `numeric` | `boolean` | `false` | Right-aligns the content and switches to tabular numerals. |
+| `flex` | `number` | `1` | Flex grow along the row. |
+| `width` | `number` | — | Fixed width in pixels; combine with `flex={0}` for fixed-only sizing. |
+| `style` | `StyleProp<ViewStyle>` | — | Cell style overrides. |
+| `testID` | `string` | — | Test identifier. |
+
+### DataTableRow props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `onPress` | `() => void` | — | Press handler; rows without one are not pressable. |
+| `selected` | `boolean` | `false` | Rests the row on the oat `surfaceMuted` ground. |
+| `disabled` | `boolean` | `false` | Disables interaction. |
+| `children` | `ReactNode` | — | The row's cells. |
+| `style` | `StyleProp<ViewStyle>` | — | Row style overrides. |
+| `testID` | `string` | — | Test identifier. |
+
+### DataTablePagination props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `page` | `number` | — | Required. Current page, 1-based. |
+| `numberOfPages` | `number` | — | Required. Total page count. |
+| `onPageChange` | `(page: number) => void` | — | Required. Called with the adjacent page on prev or next. |
+| `label` | `string` | `${page} of ${numberOfPages}` | Trailing count label, e.g. `1–10 of 132`. |
+| `style` | `StyleProp<ViewStyle>` | — | Footer style overrides. |
+| `testID` | `string` | — | Test identifier. |
+
+## Accessibility
+
+`DataTableRow` takes role `button` when `onPress` is set and reports
+`accessibilityState` `{ selected, disabled }`. Rows without `onPress` are
+inert. The pagination buttons have fixed accessible names — `Previous page`
+and `Next page` — and the count label is read as plain text.
+
+## See also
+
+<LinkCard title="List" href="/components/list/" description="Row-based display when columns are not needed." />
+<LinkCard title="Card" href="/components/card/" description="The other composed container in the kit." />
+<LinkCard title="Tokens" href="/theming/tokens/" description="The color tokens behind selection and header fills." />

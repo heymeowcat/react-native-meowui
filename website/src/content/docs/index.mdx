@@ -1,0 +1,54 @@
+---
+title: MeowUI
+description: Soft retro instruments pressed in cream and ink — a zero-dependency UI kit for React Native.
+template: splash
+---
+
+import { Card, CardGrid, LinkButton } from '@astrojs/starlight/components';
+
+<div style={{ marginTop: '2rem' }}>
+  <h1 style={{ fontSize: '2.6rem', marginBottom: '0.25rem', letterSpacing: '-0.02em' }}>MeowUI</h1>
+  <p style={{ fontSize: '1.25rem', color: 'var(--sl-color-gray-3)', maxWidth: '42ch' }}>
+    Soft retro instruments, pressed in cream and ink. A zero-dependency,
+    tactile UI kit for React Native.
+  </p>
+  <p style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+    <LinkButton href="/getting-started/installation">Get started</LinkButton>
+    <LinkButton variant="minimal" href="/components/">Browse components</LinkButton>
+  </p>
+</div>
+
+```tsx
+import { MeowProvider, Button, Card, Text } from 'react-native-meowui';
+
+export default function App() {
+  return (
+    <MeowProvider>
+      <Card style={{ padding: 16, gap: 12 }}>
+        <Text variant="headline">Welcome back</Text>
+        <Text>Your workspace is up to date.</Text>
+        <Button onPress={openWorkspace}>Open workspace</Button>
+      </Card>
+    </MeowProvider>
+  );
+}
+```
+
+<CardGrid>
+  <Card title="Zero dependencies">
+    The only peers are `react` and `react-native`. No Reanimated, no Gesture
+    Handler, no Babel plugin — nothing to configure in your host app.
+  </Card>
+  <Card title="Warm by design">
+    Oat-cream paper, espresso ink and blueberry keys. Hairline borders and 2px
+    paper casts — subtle retro, a little cute, never loud.
+  </Card>
+  <Card title="Fast by construction">
+    Memoized components, module-level styles, frozen theme tokens,
+    native-driver animations. No worklet runtime, no per-frame JS.
+  </Card>
+  <Card title="Complete">
+    40+ typed components: actions, inputs, feedback, overlays, data display
+    and navigation — with accessibility roles wired through.
+  </Card>
+</CardGrid>

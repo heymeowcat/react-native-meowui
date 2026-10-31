@@ -1,0 +1,40 @@
+---
+title: Components
+description: Every component in the kit, grouped by what it does.
+---
+
+MeowUI ships 40+ components. They all follow the same conventions: sizes are
+`'sm' | 'md' | 'lg'` resolved through `theme.metrics`, colorful intent comes
+from the `Tone` union (`'primary' | 'success' | 'warning' | 'error' | 'info'`),
+and every interactive component is built on the same `Pressable` foundation.
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid>
+  <Card title="Primitives" body="Text · Surface · Divider · Pressable · Portal · Icon — the foundations everything else is built on.">
+  </Card>
+  <Card title="Actions" body="Button · IconButton · FAB · Chip · SegmentedButtons · ToggleButton">
+  </Card>
+  <Card title="Inputs" body="TextInput · Checkbox · Radio · Switch · Slider · Searchbar · Select">
+  </Card>
+  <Card title="Feedback" body="ActivityIndicator · ProgressBar · Skeleton · Badge · Banner · Snackbar · Toast">
+  </Card>
+  <Card title="Overlays" body="Dialog · Modal · BottomSheet · Menu · Tooltip — all Portal-based, stacked by theme.zIndex.">
+  </Card>
+  <Card title="Display & navigation" body="Avatar · Card · List · Collapsible · Tabs · Appbar · BottomNavigation · Drawer · DataTable">
+  </Card>
+</CardGrid>
+
+## Conventions you can rely on
+
+- **Sizes**: `'sm' | 'md' | 'lg'` everywhere, driven by `theme.metrics`.
+- **Tones**: one union for intent, resolved against `theme.colors`.
+- **Icons**: pass any element to `icon` props, or register a renderer for the
+  `Icon` adapter — see [Icons](/concepts/icons/).
+- **Press feedback**: mechanical — the key shifts down 1px, framed keys scale
+  slightly, and the 2px warm cast collapses; flat elements tint instead.
+- **Depth**: in-flow surfaces sit on a warm paper `cast`; floating layers use
+  the blurred `softElevation`. Neither needs a runtime dependency.
+- **Disabled states**: muted colors, no cast, not opacity hacks on colored fills.
+- **Portals**: floating components stack by `theme.zIndex` — see
+  [Portals & overlays](/concepts/portals/).

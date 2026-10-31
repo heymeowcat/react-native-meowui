@@ -1,0 +1,101 @@
+---
+title: Type & layout tokens
+description: Typography variants, spacing, radii, control metrics, motion and z-index.
+---
+
+## Typography
+
+Three voices: **Fraunces** for display and headings, **DM Sans** for body and
+controls, **DM Mono** for metadata, counters and code. Load them via
+`@expo-google-fonts` and map them through `theme.fonts`; absent that, RN
+falls back to the system font.
+
+| Variant | Size / line height | Weight | Face | Notes |
+| --- | --- | --- | --- | --- |
+| `display` | 32 / 38 | 600 | Fraunces | −0.4 tracking; one per screen at most |
+| `headline` | 24 / 30 | 600 | Fraunces | −0.3 tracking |
+| `title` | 15 / 20 | 600 | Fraunces | section titles |
+| `subtitle` | 13 / 18 | 600 | Fraunces | item titles |
+| `bodyLarge` | 16 / 24 | 400 | DM Sans | |
+| `body` | 14 / 21 | 400 | DM Sans | the default |
+| `label` | 12 / 16 | 500 | DM Sans | buttons, chips |
+| `caption` | 11 / 16 | 400 | DM Sans | helper text, metadata |
+| `overline` | 10 / 14 | 500 | DM Mono | +1 tracking, uppercase |
+| `mono` | 11 / 15 | 400 | DM Mono | +0.2 tracking; tags, code, counters |
+
+Font families come from the system stack unless you map them in
+`theme.fonts` — see [Customizing](/theming/customizing/#fonts).
+
+## Spacing
+
+A 4pt scale accessed by index: `spacing[4]` is 16.
+
+| Key | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 10 | 12 | 16 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| px | 0 | 4 | 8 | 12 | 16 | 20 | 24 | 28 | 32 | 40 | 48 | 64 |
+
+## Radii
+
+Soft-cut edges — 12px controls, 16px cards, pills for tags and chips.
+
+| Key | Value | Typical use |
+| --- | --- | --- |
+| `none` | 0 | app bars |
+| `xs` | 3 | hairline nudges |
+| `sm` | 6 | small wells and glyph frames |
+| `md` | 10 | segmented keys |
+| `lg` | 12 | buttons, inputs, search, selects |
+| `xl` | 16 | cards, sheets, dialogs, menus |
+| `full` | 9999 | chips, switches, avatars, status pips, progress fills |
+
+## Metrics
+
+Every component sizes off these, which is what keeps the kit consistent:
+
+| Group | sm | md | lg |
+| --- | --- | --- | --- |
+| `control` | 34 | 44 | 52 |
+| `icon` | 30 | 40 | 48 |
+| `input` | — | 46 | 54 |
+
+## Motion
+
+Motion is felt, not seen — quick, decelerating, never bouncy.
+
+| Token | Value | Used for |
+| --- | --- | --- |
+| `durationFast` | 110 ms | presses, chevrons, menu entrance, switch thumb |
+| `durationBase` | 170 ms | FAB stack, content moves |
+| `durationSlow` | 240 ms | large content moves |
+| `durationOverlay` | 220 ms | dialogs, sheets, snackbars |
+
+Easing curves are fixed in `theme/motion` (`easingStandard`, `easingExit`) and
+intentionally not themeable — durations are yours to tune, curves are the
+kit's voice.
+
+## zIndex
+
+The stacking contract for overlays. Portals sort by these values, so a dialog
+can never cover a toast regardless of mount order.
+
+| Layer | Value |
+| --- | --- |
+| `menu` | 900 |
+| `sheet` | 950 |
+| `dialog` | 1000 |
+| `toast` | 1050 |
+| `tooltip` | 1100 |
+
+## Depth
+
+There is no elevation scale. Depth is two warm projections:
+
+- **`cast`** — an unblurred offset layer in `shadowSoft` behind in-flow
+  controls and cards, 1–3px, rounded to the same radius. Pressing collapses
+  it. Available on `Surface` via `cast` and used internally by every key.
+- **`softElevation(level, color)`** — blurred platform shadows in `shadow`,
+  reserved for floating layers (menus, dialogs, sheets, snackbars,
+  tooltips).
+
+Both colors carry their own alpha, so light and dark themes keep their warmth
+without a second opacity knob.

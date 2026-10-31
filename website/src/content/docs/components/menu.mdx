@@ -1,0 +1,119 @@
+---
+title: Menu
+description: A floating action list anchored to a trigger, clamped to stay on screen.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+`Menu` shows a list of `MenuItem` rows in a floating `Surface` (`xl` radius,
+`outlineStrong` hairline, soft layered shadow) over a transparent scrim. It
+fades in with a small downward settle. Position it with `anchor` — the screen
+coordinates of the desired top-left corner — or omit `anchor` to center it on
+the viewport.
+
+## Import
+
+```tsx
+import { Menu, MenuItem } from 'react-native-meowui';
+```
+
+## Usage
+
+Measure the trigger with `measureInWindow` and pass the result as the anchor.
+Wrap the trigger in a `View` ref — with `collapsible={false}` so the layout
+node survives Android view flattening — and open the menu just below it:
+
+```tsx
+import { useRef, useState } from 'react';
+import { View } from 'react-native';
+import { Button, Menu, MenuItem } from 'react-native-meowui';
+
+function RowActions() {
+  const triggerRef = useRef<View>(null);
+  const [anchor, setAnchor] = useState({ x: 0, y: 0 });
+  const [visible, setVisible] = useState(false);
+
+  const open = () => {
+    triggerRef.current?.measureInWindow((x, y, _width, height) => {
+      setAnchor({ x, y: y + height + 4 });
+      setVisible(true);
+    });
+  };
+
+  return (
+    <View ref={triggerRef} collapsable={false}>
+      <Button variant="ghost" onPress={open}>
+        Options
+      </Button>
+
+      <Menu visible={visible} onDismiss={() => setVisible(false)} anchor={anchor}>
+        <MenuItem label="Rename" onPress={() => setVisible(false)} />
+        <MenuItem label="Duplicate" onPress={() => setVisible(false)} />
+        <MenuItem label="Delete" disabled onPress={() => setVisible(false)} />
+      </Menu>
+    </View>
+  );
+}
+```
+
+## Anchoring
+
+`anchor` is exactly what `measureInWindow` returns: screen coordinates where
+the menu's top-left corner should appear. The menu keeps 8dp from the screen
+edges — the x position clamps against the menu width, the y position clamps
+against its measured height — so a menu near the bottom or right edge shifts
+into view instead of clipping. The vertical clamp needs the measured height,
+so on the first frame a menu anchored near the bottom edge may sit one frame
+low.
+
+## Menu items
+
+`MenuItem` rows are at least 46pt tall with a muted pressed tint. They take
+optional `leading` and `trailing` content, and a `selected` state that
+renders a built-in blueberry check glyph when no `leading` is given:
+
+```tsx
+<Menu visible={visible} onDismiss={close} anchor={anchor}>
+  <MenuItem label="Ascending" selected={sort === 'asc'} onPress={() => setSort('asc')} />
+  <MenuItem label="Descending" selected={sort === 'desc'} onPress={() => setSort('desc')} />
+  <MenuItem label="Custom" leading={<Icon name="edit" />} onPress={openCustom} />
+</Menu>
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `visible` | `boolean` | — | Drives presentation; keep rendering the component so it can animate out. |
+| `onDismiss` | `() => void` | — | Called when the scrim closes the menu. |
+| `anchor` | `{ x: number; y: number }` | — | Screen coordinates (e.g. from `measureInWindow`) where the menu's top-left corner should appear, clamped to stay on screen. Omit to center the menu on the viewport. |
+| `width` | `number` | `200` | Menu width in dp. |
+| `children` | `ReactNode` | — | Menu content — usually `MenuItem` rows. |
+| `dismissable` | `boolean` | `true` | Whether the transparent scrim closes the menu. |
+| `style` | `StyleProp<ViewStyle>` | — | Style overrides for the menu surface. |
+| `testID` | `string` | — | Test identifier. |
+
+## MenuItem props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `leading` | `ReactNode` | — | Leading content; when omitted and `selected`, a check glyph is shown. |
+| `label` | `string` | — | Row label; also the accessible name. |
+| `trailing` | `ReactNode` | — | Trailing content. |
+| `disabled` | `boolean` | `false` | Disables the row. |
+| `onPress` | `() => void` | — | Press handler. |
+| `selected` | `boolean` | `false` | Marks the row selected; shows a check glyph when no `leading` is given. |
+| `style` | `StyleProp<ViewStyle>` | — | Style overrides for the row. |
+| `testID` | `string` | — | Test identifier. |
+
+## Accessibility
+
+The transparent scrim is a labeled button ("Close menu"). Each row has role
+`menuitem`, its `label` as the accessible name, and an `accessibilityState`
+of `{ disabled, checked }` — `checked` is set when the row is `selected`.
+
+## See also
+
+<LinkCard title="Select" href="/components/select/" description="A dropdown built on Menu with selection semantics baked in." />
+<LinkCard title="Portals & overlays" href="/concepts/portals/" description="Where the menu renders and how stacking is decided." />
+<LinkCard title="Surface" href="/components/surface/" description="The bordered container the menu renders in." />

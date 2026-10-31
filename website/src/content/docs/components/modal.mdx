@@ -1,0 +1,89 @@
+---
+title: Modal
+description: A fullscreen scrim with no imposed layout — you place your own Surface.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+`Modal` is the generic overlay the kit's dialogs are built from: a fading
+scrim plus a fullscreen animated layer you fill freely. Unlike `Dialog`, no
+`Surface` is imposed. The layer around your content is fullscreen with
+`box-none` pointer events, so placement is entirely yours. It fades and
+scales in (0.96 to 1) exactly like a dialog.
+
+## Import
+
+```tsx
+import { Modal } from 'react-native-meowui';
+```
+
+## Usage
+
+Gate presentation with `visible`, and keep the component mounted while it
+animates out:
+
+```tsx
+import { useState } from 'react';
+import { Modal, Surface, Text } from 'react-native-meowui';
+
+function Spotlight() {
+  const [visible, setVisible] = useState(false);
+
+  return (
+    <Modal visible={visible} onDismiss={() => setVisible(false)}>
+      <Surface
+        cast={2}
+        style={{ position: 'absolute', top: '30%', left: 24, right: 24 }}
+      >
+        <Text>Anything can live here.</Text>
+      </Surface>
+    </Modal>
+  );
+}
+```
+
+## Positioning
+
+The children layer covers the screen but lets touches through to nothing
+except your content, so position it yourself — usually an
+absolutely-positioned `Surface`:
+
+```tsx
+<Modal visible={visible} onDismiss={() => setVisible(false)}>
+  <Surface
+    cast={2}
+    style={{ position: 'absolute', bottom: 24, left: 24, right: 24 }}
+  >
+    <Text>This panel hugs the bottom edge, 24 in from the sides.</Text>
+  </Surface>
+</Modal>
+```
+
+`onDismiss` is optional. When it is omitted the scrim becomes inert — useful
+for blocking flows that need an explicit choice inside the modal.
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `visible` | `boolean` | — | Drives presentation; keep rendering the component so it can animate out. |
+| `onDismiss` | `() => void` | — | Called when the scrim is tapped and `dismissable` is true. |
+| `dismissable` | `boolean` | `true` | Whether tapping the scrim dismisses. |
+| `children` | `ReactNode` | — | Full control over the contents — usually an absolutely-positioned `Surface`. The layer around them is fullscreen (`box-none`), so you choose the placement. |
+| `contentContainerStyle` | `StyleProp<ViewStyle>` | — | Style overrides for the fullscreen animated layer wrapping `children`. |
+| `style` | `StyleProp<ViewStyle>` | — | Style overrides for the outer fullscreen layer. |
+| `testID` | `string` | — | Test identifier. |
+
+## Accessibility
+
+The scrim is a labeled button ("Dismiss") that disables itself while the
+modal is closed, not dismissable, or missing `onDismiss`. The content layer
+turns its pointer events off while closed. Modal sets no
+`accessibilityViewIsModal` itself — add it to your own surface when it should
+act as a modal region for screen readers.
+
+## See also
+
+<LinkCard title="Dialog" href="/components/dialog/" description="The structured alternative when a centered decision is enough." />
+<LinkCard title="BottomSheet" href="/components/bottom-sheet/" description="A Surface docked to the bottom edge with a drag handle." />
+<LinkCard title="Portals & overlays" href="/concepts/portals/" description="How overlays escape the view tree and stack by zIndex token." />

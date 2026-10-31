@@ -1,0 +1,78 @@
+---
+title: Tooltip
+description: A long-press hint bubble that anchors to the element it wraps and auto-hides.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+`Tooltip` wraps a single element and shows a small dark bubble when the
+element is long-pressed. The bubble renders through a portal with a
+rotated-diamond tail pointing at the child, and hides itself after two
+seconds. Tap the bubble to dismiss it early.
+
+## Import
+
+```tsx
+import { Tooltip } from 'react-native-meowui';
+```
+
+## Usage
+
+Wrap the element — usually a `Pressable`-derivative — and pass the label. No
+visibility state is needed; the tooltip manages itself:
+
+```tsx
+<Tooltip label="Exports the current report as CSV">
+  <Button variant="outline" onPress={exportReport}>
+    Export
+  </Button>
+</Tooltip>
+
+<Tooltip label="Add to favorites" side="bottom">
+  <IconButton
+    icon={<Icon name="heart" />}
+    accessibilityLabel="Add to favorites"
+    onPress={favorite}
+  />
+</Tooltip>
+```
+
+## Positioning
+
+The wrapper measures the child with `measureInWindow` and centers the bubble
+on it, leaving a 6dp gap. `side` picks which side the bubble appears on —
+`'top'` (default) above the child, `'bottom'` below — with the diamond tail
+pointing back at it.
+
+## Long-press capture
+
+The wrapper clones the child and replaces its `onLongPress` with the show
+handler. The child's own long-press handler is intentionally gone — do not
+rely on the wrapped element having one. `onPress` keeps working unchanged.
+
+The bubble is an espresso ink stamp: `inverseSurface` ground, a 1px
+`inverseOnSurface` border, `lg` corners and mono label text, so it reads
+against any background in both color modes.
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `children` | `ReactElement` | — | Single element (usually a `Pressable`-derivative) the tooltip describes. Its `onLongPress` is captured by the wrapper; its `onPress` keeps working. |
+| `label` | `string` | — | Text shown in the bubble. |
+| `side` | `'top' \| 'bottom'` | `'top'` | Which side of the child the bubble appears on. |
+| `style` | `StyleProp<ViewStyle>` | — | Style overrides for the wrapper around the child. |
+| `testID` | `string` | — | Test identifier. |
+
+## Accessibility
+
+The bubble is a button that dismisses on tap; the label text is its
+accessible content. There is no scrim — the rest of the screen stays
+interactive. Because the trigger is a long-press, the wrapped element keeps
+its own accessible name and actions; treat the tooltip as a visual hint, not
+the only way to learn what a control does.
+
+## See also
+
+<LinkCard title="Portals & overlays" href="/concepts/portals/" description="The tooltip is the topmost layer — see the stacking table." />
+<LinkCard title="Menu" href="/components/menu/" description="An anchored popover with actions instead of a hint." />

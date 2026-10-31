@@ -1,0 +1,56 @@
+---
+title: Migrating from 0.2
+description: What changed in the 0.3.0 redesign and how to move your code over.
+---
+
+Version 0.3.0 is a ground-up redesign. The component inventory is larger, but
+the API names below changed. The legacy implementation is preserved on the
+[`legacy/comic-ui`](https://github.com/heymeowcat/react-native-meowui/tree/legacy/comic-ui)
+branch.
+
+## Dependencies
+
+Remove the old peer dependencies — nothing beyond `react` / `react-native` is
+needed anymore:
+
+```bash
+npm uninstall react-native-reanimated react-native-gesture-handler \
+  expo-linear-gradient expo-blur @react-native-masked-view/masked-view \
+  react-native-worklets react-native-worklets-core
+```
+
+Also remove `react-native-reanimated/plugin` from your `babel.config.js` if no
+other library needs it.
+
+## Renames
+
+| 0.2 | 0.3 |
+| --- | --- |
+| `MeowProvider` | `MeowProvider` (unchanged; also exported as `ThemeProvider`) |
+| `Input` | `TextInput` |
+| `Combobox` | `Select` |
+| `AlertDialog` (0.2 modal) | `Dialog` + `AlertDialog` (separate components) |
+| `Button variant="filled"` | `variant="solid"` |
+| `Button variant="gradient"` | removed — use `variant="solid"` |
+| `Button leftIcon` / `rightIcon` | `icon` / `trailingIcon` |
+| `Button fullWidth` | unchanged |
+
+## Removed
+
+- `PencilBurst` and `usePencilBurst` — the comic-style press effect.
+- `GradientBackground`, `useGradient`, and the `gradients` theme section.
+- Gradients as a general mechanism. If a screen needs one, compose it in your
+  app with a gradient component of your choice behind a `Surface`.
+
+## Theme changes
+
+- Colors follow a new semantic grammar (`surface*`, `on*`, `*Muted`,
+  `outline*`, `inverse*`). See [Color tokens](/theming/colors/).
+- `borderRadius` → `radii`; `componentSizes` → `metrics`; `elevation` levels →
+  the `cast` prop on `Surface` (warm paper depth, not platform shadows).
+- Typography variants are `display / headline / title / subtitle / bodyLarge /
+  body / label / caption / overline / mono` — the Material-style
+  `DisplayLarge…LabelSmall` grid is gone, as are the per-variant components
+  (`BodyMedium`, `TitleLarge`, …). Use `<Text variant="title">` instead.
+- `overrides` replaces `createTheme({...})` passed to the provider;
+  `createTheme` now builds a standalone theme object.

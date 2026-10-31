@@ -1,0 +1,87 @@
+---
+title: Icon
+description: Render glyphs through one app-wide renderer — register an icon font once, use it everywhere.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+`Icon` renders a glyph through a renderer you register once at startup.
+The kit ships no icon font; instead `Icon` is a thin, theme-aware wrapper
+around whatever icon set your app already uses. `setIconRenderer` sets
+that renderer app-wide.
+
+Without a registered renderer, `Icon` renders nothing and warns in
+development. Components that accept `ReactNode` icons are unaffected
+either way.
+
+## Import
+
+```tsx
+import { Icon, setIconRenderer } from 'react-native-meowui';
+```
+
+## Usage
+
+Register once at startup, before any screen renders:
+
+```tsx
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { setIconRenderer } from 'react-native-meowui';
+
+setIconRenderer(Ionicons);
+```
+
+Then use it anywhere:
+
+```tsx
+<Icon name="add" />
+<Icon name="close" size={16} />
+<Icon name="heart" color="#AF3B31" />
+```
+
+Pass `null` to remove the renderer again:
+
+```tsx
+setIconRenderer(null);
+```
+
+## The renderer contract
+
+Any icon font or icon component works as long as it accepts these props.
+`react-native-vector-icons` and `@expo/vector-icons` satisfy it out of the
+box.
+
+```tsx
+interface IconRendererProps {
+  name: string;
+  size?: number;
+  color?: string;
+  style?: StyleProp<TextStyle>;
+}
+```
+
+`color` defaults to `colors.onSurface`, so icons follow the theme without
+per-call colors. Pass `renderer` to a single `Icon` to override the
+registered default for that call.
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `name` | `string` | — | Glyph name within the registered icon set. |
+| `size` | `number` | `20` | Icon size in points. |
+| `color` | `string` | `colors.onSurface` | Icon color. |
+| `renderer` | `IconComponent` | — | Per-call renderer override. |
+| `style` | `StyleProp<TextStyle>` | — | Style forwarded to the renderer. |
+
+## Accessibility
+
+An icon glyph is a visual, not a control. Screen readers do not derive
+meaning from it, so pair icons with text or put an `accessibilityLabel` on
+the surrounding control — `IconButton` requires one for exactly this
+reason.
+
+## See also
+
+<LinkCard title="Icons" href="/concepts/icons/" description="Registering renderers and swapping icon sets app-wide." />
+<LinkCard title="IconButton" href="/components/icon-button/" description="A square touch target around a single icon." />

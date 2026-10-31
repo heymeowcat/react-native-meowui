@@ -1,0 +1,87 @@
+---
+title: Surface
+description: The kit's container primitive — a milk-paper fill, a warm hairline, and an optional soft paper cast.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+`Surface` is the kit's container primitive: a milk-paper fill, a 1px warm
+hairline (on by default) and an optional soft paper cast. Cards, sheets, app
+bars and lists are all Surfaces, which is what keeps backgrounds, borders and
+depth consistent across a screen.
+
+Two depth styles exist by design. In-flow surfaces lift with `cast` — a warm,
+unblurred projection offset down and to the right, like paper on paper.
+Floating layers (menus, dialogs, sheets, snackbars) reach for the blurred
+`softElevation` instead, which `Surface` applies nothing of by itself.
+
+## Import
+
+```tsx
+import { Surface } from 'react-native-meowui';
+```
+
+## Usage
+
+```tsx
+{/* Plain sheet — hairline border, 16px radius */}
+<Surface style={{ padding: 16 }}>
+  <Text variant="title">Workspace</Text>
+</Surface>
+
+{/* Lifted card — 2px warm cast */}
+<Surface cast={2} style={{ padding: 16 }}>
+  <Text variant="body">Floating panel</Text>
+</Surface>
+
+{/* Tinted fill, e.g. a muted banner */}
+<Surface backgroundColor={colors.surfaceMuted} radius="md" />
+```
+
+## Cast
+
+`cast` is a closed depth from `0` to `3`, rendered as an absolutely
+positioned layer behind the fill, offset down and to the right by that many
+px and rounded to the same radius. It uses `colors.shadowSoft`, so light and
+dark themes each keep their own warmth — there is no separate opacity knob.
+Level `0` renders nothing.
+
+Because the projection extends past the sheet's own bounds, `Surface` adds an
+equal `marginRight` and `marginBottom` while `cast` is above `0`. The layout
+box of the sheet itself is unchanged.
+
+| Level | Use |
+| --- | --- |
+| `0` | Flush in-flow surfaces — sections, list groups, page panels. |
+| `1` | Quiet lift — inline notes, grouped tiles. |
+| `2` | Cards and raised content. |
+| `3` | Reserved for the highest in-flow layers. |
+
+For a hand-built overlay, apply the blurred shadow yourself with
+`softElevation(level, colors.shadow)` on the surface's `style`; dialogs,
+menus, sheets and snackbars already do this.
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `cast` | `0 \| 1 \| 2 \| 3 \| number` | `0` | Soft paper projection depth in px, drawn in `colors.shadowSoft` behind the fill. |
+| `outlined` | `boolean` | `true` | Draw the 1px warm hairline border. |
+| `radius` | `'none' \| 'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl' \| 'full'` | `'xl'` | Corner radius token (16 at `xl`). |
+| `backgroundColor` | `string` | `colors.surface` | Fill color. |
+| `borderColor` | `string` | `colors.outline` | Hairline color override — overlays pass `colors.outlineStrong`. |
+| `style` | `StyleProp<ViewStyle>` | — | Container style overrides. |
+
+All other React Native `ViewProps` — `children`, `testID`, layout props —
+pass through unchanged.
+
+## Accessibility
+
+`Surface` is a plain view and conveys nothing on its own. Semantics come
+from the content you put inside it, so group related children here and let
+the inner controls carry roles and labels.
+
+## See also
+
+<LinkCard title="Divider" href="/components/divider/" description="Hairline separators for content inside a surface." />
+<LinkCard title="Color tokens" href="/theming/colors/" description="What `surface`, `outline` and `shadowSoft` resolve to in both modes." />

@@ -1,0 +1,45 @@
+---
+title: Theming overview
+description: How MeowUI's token system works and the grammar behind it.
+---
+
+MeowUI is themed entirely through **semantic tokens**. Components never contain
+hex values — if you can't achieve a look through tokens, that's considered a
+bug in the token system, not a reason to reach for inline overrides.
+
+## The color grammar
+
+Every color token follows a strict naming rule, so intent is always readable
+in both the theme and your own styles:
+
+| Prefix | Meaning |
+| --- | --- |
+| `surface*` | Background fills. `background` is the page canvas, `surface` sits on it (cards, bars, sheets), `surfaceMuted` is a secondary fill, `surfaceActive` a pressed fill. |
+| `on*` | Content rendered **on top of** the matching fill. `onSurface` pairs with `surface`, `onPrimary` with `primary`. |
+| `*Muted` | A soft, low-chroma fill for tonal variants (`primaryMuted`), with its own `onPrimaryMuted` content color. |
+| `outline` / `outlineStrong` | Hairline borders; strong is for inputs and emphasized edges. |
+| `inverseSurface` / `inverseOnSurface` | The high-contrast pairing for overlays: snackbars, toasts, tooltips. |
+
+Plus five **tones** — `primary` (blueberry), `success` (forest sage),
+`warning` (burnt honey), `error` (oxblood), `info` (deep teal) — each with
+solid, on-solid, muted, on-muted and outline variants for soft badges and
+tinted borders. The `Tone` union flows into
+component props (`tone="error"`), so you never pass raw colors to express
+intent.
+
+## Beyond colors
+
+| Group | Contents |
+| --- | --- |
+| `typography` | `display` 32 → `headline` 24 → `title` 15 → `subtitle` 13 → `bodyLarge` 16 → `body` 14 → `label` 12 → `caption` 11 → `overline` 10 → `mono` 11 |
+| `spacing` | 4pt scale, keys `0–8`, `10`, `12`, `16` (× 4) |
+| `radii` | `none` 0, `xs` 3, `sm` 6, `md` 10, `lg` 12, `xl` 16, `full` |
+| `metrics` | `control` 34/44/52, `icon` 30/40/48, `input` 46/54 |
+| `motion` | Durations 110 / 170 / 240 / 220 ms |
+| `zIndex` | `menu` 900, `sheet` 950, `dialog` 1000, `toast` 1050, `tooltip` 1100 |
+| `shadow` / `shadowSoft` | warm ink casts for tactile controls; warm paper casts for surfaces |
+| `fonts` | Optional sans (`regular` / `medium` / `semibold`), display (`displayRegular` / `displayMedium` / `displaySemibold`) and mono (`monoRegular` / `monoBold`) family names |
+
+Dive into each group: [Color tokens](/theming/colors/),
+[Type & layout tokens](/theming/tokens/), [Customizing](/theming/customizing/),
+[Dark mode](/theming/dark-mode/).

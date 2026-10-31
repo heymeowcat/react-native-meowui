@@ -1,0 +1,64 @@
+---
+title: ActivityIndicator
+description: A quiet indeterminate spinner for brief, unmeasured waits.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+ActivityIndicator is a full-radius ring whose top arc carries the accent
+color, spinning on a native-driven 0-360 degree rotation. Use it for waits
+you cannot measure. When the fraction complete is known, use a
+[ProgressBar](/components/progress-bar/) instead; when the shape of the
+loading content is known, sketch it with [skeletons](/components/skeleton/).
+
+## Import
+
+```tsx
+import { ActivityIndicator } from 'react-native-meowui';
+```
+
+## Usage
+
+```tsx
+<ActivityIndicator />
+
+<ActivityIndicator size="lg" />
+
+// Size the wrapper to reserve layout space, so nothing shifts
+// when the spinner disappears
+<ActivityIndicator style={{ width: 24, height: 24 }} />
+```
+
+## Sizes
+
+| Size | Ring diameter |
+| --- | --- |
+| `sm` | 16dp |
+| `md` | 20dp |
+| `lg` | 24dp |
+
+The arc is 2dp wide on `sm` and 2.5dp on the larger sizes. The rotation is a
+linear native-driven loop, so the spinner keeps turning on the UI thread even
+while the JS thread is busy.
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Ring diameter. |
+| `color` | `string` | `colors.primary` | Arc color. |
+| `style` | `StyleProp<ViewStyle>` | — | Style for the wrapper `View`. Size it (e.g. `width`/`height`) to reserve layout space — the ring is centered inside it. |
+| `testID` | `string` | — | Test identifier. |
+
+## Accessibility
+
+The spinner renders a plain view with no accessible role or label. Announce
+the loading state on the surrounding UI instead — a labeled container or a
+live region — and reserve space with `style` so the layout does not shift
+when the spinner unmounts.
+
+## See also
+
+<LinkCard title="ProgressBar" href="/components/progress-bar/" description="A thin linear track for measurable progress." />
+<LinkCard title="Skeleton" href="/components/skeleton/" description="Pulsing placeholders that sketch the loading layout." />
+<LinkCard title="Color tokens" href="/theming/colors/" description="What the default primary arc resolves to in both modes." />

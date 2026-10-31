@@ -1,0 +1,81 @@
+---
+title: ProgressBar
+description: A chunky linear gauge for measurable progress, or a quiet sweep when the length is unknown.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+import { Aside } from '@astrojs/starlight/components';
+
+ProgressBar is a chunky, fully rounded gauge — a 12dp oat track in a hairline
+frame with a blueberry fill. With a `progress` prop the fill animates to that
+fraction of the measured track width; without one the bar runs a quiet
+indeterminate sweep. Reach for it when work has a known length — uploads,
+downloads, multi-step forms — and let [ActivityIndicator](/components/activity-indicator/)
+handle the unmeasured cases.
+
+## Import
+
+```tsx
+import { ProgressBar } from 'react-native-meowui';
+```
+
+## Usage
+
+```tsx
+function Upload() {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setProgress((p) => Math.min(1, p + 0.05));
+    }, 100);
+    return () => clearInterval(timer);
+  }, []);
+
+  return <ProgressBar progress={progress} />;
+}
+```
+
+Omit `progress` for an indeterminate sweep:
+
+```tsx
+<ProgressBar />
+```
+
+## Modes
+
+| Mode | How | Behavior |
+| --- | --- | --- |
+| Determinate | Pass `progress` from 0 to 1 | The fill animates to the fraction of the measured track width over 180ms. Values outside the range are clamped. |
+| Indeterminate | Omit `progress` | A bar covering 30% of the track slides across and back, 1.1s each way, on a native-driven transform loop. |
+
+<Aside type="note">
+The determinate fill animates `width`, a layout property the native driver
+cannot handle, so this one animation runs on the JS thread. The node is a
+single small view and the timing is short, which keeps that cost negligible —
+a transform-based width hack would distort the fill's rounded ends. The
+indeterminate sweep is transform-only and stays on the native driver.
+</Aside>
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `progress` | `number` | — | Fill level from 0 to 1. Omit for an indeterminate sweep. |
+| `height` | `number` | `12` | Track height in dp. |
+| `color` | `string` | `colors.primary` | Fill color. |
+| `trackColor` | `string` | `colors.surfaceMuted` | Track color. |
+| `style` | `StyleProp<ViewStyle>` | — | Style overrides for the track. |
+| `testID` | `string` | — | Test identifier. |
+
+## Accessibility
+
+The track takes the `progressbar` role. Determinate bars expose
+`accessibilityValue` with `min: 0`, `max: 1` and the clamped `progress` as
+`now`; indeterminate bars omit the value, since there is nothing to report.
+
+## See also
+
+<LinkCard title="ActivityIndicator" href="/components/activity-indicator/" description="A quiet ring spinner for unmeasured waits." />
+<LinkCard title="Skeleton" href="/components/skeleton/" description="Pulsing placeholders that sketch the loading layout." />
+<LinkCard title="Color tokens" href="/theming/colors/" description="What the default fill and track colors resolve to in both modes." />

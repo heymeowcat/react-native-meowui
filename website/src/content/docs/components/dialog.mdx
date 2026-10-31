@@ -1,0 +1,130 @@
+---
+title: Dialog
+description: Centered modal dialogs and confirmations with a fading scrim and right-aligned actions.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+`Dialog` asks for a decision the rest of the screen waits on. It renders
+through a portal: a fading scrim, then a centered `Surface` (`xl` radius,
+`outlineStrong` hairline, soft layered shadow, 86% of the viewport width capped
+at 400) with an optional title, a body and right-aligned actions. `AlertDialog`
+builds on it with the confirmation boilerplate — title, message, Cancel and
+Confirm.
+
+## Import
+
+```tsx
+import { Dialog, AlertDialog } from 'react-native-meowui';
+```
+
+## Usage
+
+Gate presentation with `visible`, and keep the component mounted while it
+animates out — do not unmount it when `visible` flips to `false`:
+
+```tsx
+import { useState } from 'react';
+import { Button, Dialog, Text } from 'react-native-meowui';
+
+function SignOutDialog() {
+  const [visible, setVisible] = useState(false);
+
+  return (
+    <>
+      <Button tone="error" onPress={() => setVisible(true)}>
+        Sign out
+      </Button>
+
+      <Dialog
+        visible={visible}
+        onDismiss={() => setVisible(false)}
+        title="Sign out?"
+        actions={
+          <>
+            <Button variant="ghost" onPress={() => setVisible(false)}>
+              Cancel
+            </Button>
+            <Button tone="error" onPress={signOut}>
+              Sign out
+            </Button>
+          </>
+        }
+      >
+        <Text>You will need to sign in again to keep editing.</Text>
+      </Dialog>
+    </>
+  );
+}
+```
+
+## Actions
+
+Body content renders in a column gapped by `spacing[3]`. The `actions` prop
+renders right-aligned underneath, in a row gapped by `spacing[2]`. The
+convention is a ghost cancel beside a single solid confirm.
+
+## AlertDialog
+
+`AlertDialog` is a `Dialog` with the actions wired up: a ghost Cancel and a
+solid Confirm. Confirming calls `onConfirm`, then dismisses. Pass
+`tone="error"` for destructive confirmations.
+
+```tsx
+<AlertDialog
+  visible={visible}
+  onDismiss={() => setVisible(false)}
+  title="Delete project?"
+  message="This removes the project and everything in it."
+  confirmLabel="Delete"
+  tone="error"
+  onConfirm={deleteProject}
+/>
+```
+
+By default the AlertDialog scrim does not dismiss — confirmations want an
+explicit choice. Pass an empty string to `cancelLabel` to hide the cancel
+button.
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `visible` | `boolean` | — | Drives presentation; keep rendering the component so it can animate out. |
+| `onDismiss` | `() => void` | — | Called when the scrim is tapped (and `dismissable` is true). |
+| `title` | `string` | — | Title shown above the body. |
+| `children` | `ReactNode` | — | Body content, rendered as-is in a `spacing[3]`-gapped column. |
+| `actions` | `ReactNode` | — | Actions, rendered right-aligned in a `spacing[2]`-gapped row. |
+| `dismissable` | `boolean` | `true` | Whether tapping the scrim dismisses. |
+| `style` | `StyleProp<ViewStyle>` | — | Style overrides for the surface. |
+| `contentContainerStyle` | `StyleProp<ViewStyle>` | — | Style overrides for the animated fullscreen layer around the surface. |
+| `testID` | `string` | — | Test identifier. |
+
+## AlertDialog props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `visible` | `boolean` | — | Drives presentation; keep rendering the component so it can animate out. |
+| `onDismiss` | `() => void` | — | Called when the scrim is tapped (and `dismissable` is true). |
+| `title` | `string` | — | Title shown above the message. |
+| `message` | `string` | — | Body text, rendered with the `body` text variant. |
+| `confirmLabel` | `string` | `'Confirm'` | Confirm button label. |
+| `cancelLabel` | `string` | `'Cancel'` | Cancel button label; pass an empty string to hide it. |
+| `onConfirm` | `() => void` | — | Called when the confirm button is pressed; the dialog dismisses afterwards. |
+| `tone` | `'neutral' \| 'error'` | `'neutral'` | `'error'` renders a destructive confirm button. |
+| `dismissable` | `boolean` | `false` | Whether tapping the scrim dismisses — confirmations want an explicit choice. |
+| `testID` | `string` | — | Test identifier. |
+
+## Accessibility
+
+The scrim is a labeled button ("Dismiss dialog") that disables itself while
+the dialog is closed or not dismissable. The surface sets
+`accessibilityViewIsModal`, so screen readers treat the dialog as its own
+region. Dismissal is the scrim only — there is no hardware back handling, so
+wire that yourself if the platform needs it.
+
+## See also
+
+<LinkCard title="Portals & overlays" href="/concepts/portals/" description="How overlays escape the view tree and stack by zIndex token." />
+<LinkCard title="Modal" href="/components/modal/" description="The same scrim and animation, but you place your own Surface." />
+<LinkCard title="BottomSheet" href="/components/bottom-sheet/" description="A Surface docked to the bottom edge instead of centered." />

@@ -1,0 +1,130 @@
+---
+title: List
+description: Sectioned settings rows, the standard list row, and an expanding accordion.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+The list family renders the rows a settings screen or a drawer is made of.
+`ListSection` groups rows under an uppercase header, `ListItem` is the standard
+row, and `ListAccordion` expands into content below its header row.
+
+## Import
+
+```tsx
+import { ListSection, ListItem, ListAccordion } from 'react-native-meowui';
+```
+
+## Usage
+
+```tsx
+<ListSection header="Notifications">
+  <ListItem
+    leading={<Icon name="mail" />}
+    title="Email digest"
+    description="A weekly summary of account activity."
+    trailing={<Switch checked={digest} onValueChange={setDigest} accessibilityLabel="Email digest" />}
+  />
+  <ListItem
+    leading={<Icon name="notifications" />}
+    title="Push notifications"
+    trailing={<Switch checked={push} onValueChange={setPush} accessibilityLabel="Push notifications" />}
+  />
+  <ListItem title="Sign out" onPress={signOut} disabled={busy} />
+</ListSection>
+```
+
+## Accordion state
+
+`ListAccordion` works uncontrolled or controlled.
+
+```tsx
+// Uncontrolled — the accordion keeps its own state.
+<ListSection header="Playback">
+  <ListAccordion leading={<Icon name="options" />} title="Audio quality">
+    <ListItem title="High" onPress={() => pick('high')} selected={quality === 'high'} />
+    <ListItem title="Normal" onPress={() => pick('normal')} selected={quality === 'normal'} />
+  </ListAccordion>
+</ListSection>
+```
+
+```tsx
+// Controlled — the parent owns the expanded state.
+const [open, setOpen] = useState(false);
+
+<ListAccordion
+  leading={<Icon name="options" />}
+  title="Audio quality"
+  expanded={open}
+  onExpandedChange={setOpen}
+>
+  <ListItem title="High" />
+  <ListItem title="Normal" />
+</ListAccordion>
+```
+
+## Behavior
+
+- Rows press with a `surfaceMuted` tint; disabled rows mute their content
+  instead of dimming.
+- `selected` on a `ListItem` sets a semibold title and tints the leading icon
+  with `colors.primary`.
+- A leading element sits in a 36px oat well with a 10px radius.
+- The accordion chevron rotates 90 degrees on the native driver; the body
+  animates its measured height on the JS driver over `motion.durationBase`.
+- `description` clamps to two lines. Rows without it are 52px tall; with it,
+  68px minimum.
+
+## Props
+
+### ListSection props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `header` | `string` | — | Uppercase section header rendered above the items. |
+| `children` | `ReactNode` | — | Section content, usually `ListItem`s. |
+| `style` | `StyleProp<ViewStyle>` | — | Container style overrides. |
+| `testID` | `string` | — | Test identifier. |
+
+### ListItem props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `leading` | `ReactNode` | — | Leading content — icon, avatar, anything; `color` is injected when supported. |
+| `title` | `string` | — | Required. Title line. |
+| `description` | `string` | — | Optional secondary line, clamped to two rows. |
+| `trailing` | `ReactNode` | — | Trailing content — meta text, switch, chevron, anything. |
+| `onPress` | `() => void` | — | Press handler. |
+| `disabled` | `boolean` | `false` | Disables interaction and mutes content. |
+| `selected` | `boolean` | `false` | Emphasizes the row: semibold title and a primary-tinted leading icon. |
+| `style` | `StyleProp<ViewStyle>` | — | Row style overrides. |
+| `testID` | `string` | — | Test identifier. |
+
+### ListAccordion props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `leading` | `ReactNode` | — | Leading content — icon, avatar, anything; `color` is injected when supported. |
+| `title` | `string` | — | Required. Header title. |
+| `children` | `ReactNode` | — | Required. Content revealed when expanded. |
+| `expanded` | `boolean` | — | Controlled expanded state. When omitted the component manages its own. |
+| `defaultExpanded` | `boolean` | `false` | Initial expanded state for uncontrolled usage. |
+| `onExpandedChange` | `(expanded: boolean) => void` | — | Called with the next expanded state on toggle. |
+| `disabled` | `boolean` | `false` | Disables toggling. |
+| `style` | `StyleProp<ViewStyle>` | — | Container style overrides. |
+| `testID` | `string` | — | Test identifier. |
+
+## Accessibility
+
+- `ListItem` takes role `button` when `onPress` is set and reports
+  `accessibilityState` `{ disabled, selected }`.
+- `ListAccordion` is role `button`, announced by its `title` and reporting
+  `accessibilityState` `{ disabled, expanded }`.
+- Collapsed accordion content is hidden from screen readers via
+  `accessibilityElementsHidden` and `no-hide-descendants` on Android.
+
+## See also
+
+<LinkCard title="Collapsible" href="/components/collapsible/" description="A plain height reveal without the list row." />
+<LinkCard title="Drawer" href="/components/drawer/" description="Navigation rows for a drawer, with active state." />
+<LinkCard title="Tokens" href="/theming/tokens/" description="The motion tokens behind the accordion animation." />

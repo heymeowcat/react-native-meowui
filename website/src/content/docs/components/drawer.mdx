@@ -1,0 +1,98 @@
+---
+title: Drawer
+description: Navigation rows for a drawer — sectioned items with active and badge states.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+`DrawerSection` and `DrawerItem` render the navigation content of a drawer.
+They are rows only: the container, layout and open/close behavior are the
+consumer's — a `Modal`, a custom layout, whatever hosts the drawer. Active
+state and badges are built in.
+
+## Import
+
+```tsx
+import { DrawerSection, DrawerItem } from 'react-native-meowui';
+```
+
+## Usage
+
+```tsx
+const [route, setRoute] = useState('inbox');
+
+<DrawerSection header="Mail">
+  <DrawerItem
+    icon={<Icon name="mail" />}
+    label="Inbox"
+    badge={12}
+    active={route === 'inbox'}
+    onPress={() => setRoute('inbox')}
+  />
+  <DrawerItem
+    icon={<Icon name="send" />}
+    label="Sent"
+    active={route === 'sent'}
+    onPress={() => setRoute('sent')}
+  />
+  <DrawerItem icon={<Icon name="trash" />} label="Trash" disabled />
+</DrawerSection>
+```
+
+Stack multiple sections in one column — the rows are plain views, so they
+scroll inside whatever container you place them in.
+
+```tsx
+<DrawerSection header="Mail">{/* items */}</DrawerSection>
+<DrawerSection header="Labels">{/* items */}</DrawerSection>
+```
+
+## Behavior
+
+- Rows are 44px tall with `lg` (12px) corners and a muted label; press
+  feedback is a `surfaceActive` tint. Rows never translate.
+- `active` rests the row on a `primaryMuted` well framed by a 1px
+  `primaryOutline` border, inks the label and icon `primary` and sets a
+  semibold label.
+- `badge` renders a trailing 18px pill with a hairline border — a
+  `surface` fill on active rows, `surfaceMuted` otherwise, with muted 10px
+  text.
+- Icons receive the resolved content `color` when they accept one, so a single
+  icon definition works in both states.
+
+## Props
+
+### DrawerSection props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `header` | `string` | — | Uppercase section header rendered above the items. |
+| `children` | `ReactNode` | — | Section content, usually `DrawerItem`s. |
+| `style` | `StyleProp<ViewStyle>` | — | Container style overrides. |
+| `testID` | `string` | — | Test identifier. |
+
+### DrawerItem props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `icon` | `ReactNode` | — | Leading content — icon, anything; `color` is injected when supported. |
+| `label` | `string` | — | Required. Item label. |
+| `active` | `boolean` | `false` | Rests the row on a `primaryMuted` well with a `primaryOutline` border and an inked, semibold label. |
+| `onPress` | `() => void` | — | Press handler. |
+| `disabled` | `boolean` | `false` | Disables interaction and mutes content. |
+| `badge` | `string \| number` | — | Optional count or short text rendered as a trailing pill. |
+| `style` | `StyleProp<ViewStyle>` | — | Row style overrides. |
+| `testID` | `string` | — | Test identifier. |
+
+## Accessibility
+
+Each item is role `button` with `accessibilityState` `{ disabled, selected }` —
+`selected` mirrors `active` — and is announced by its `label`. The consumer is
+responsible for the drawer container's role and for managing focus when it
+opens or closes.
+
+## See also
+
+<LinkCard title="List" href="/components/list/" description="Settings-style rows with descriptions and trailing controls." />
+<LinkCard title="Modal" href="/components/modal/" description="A common host container for a drawer." />
+<LinkCard title="Badge" href="/components/badge/" description="Standalone counts and status pills." />

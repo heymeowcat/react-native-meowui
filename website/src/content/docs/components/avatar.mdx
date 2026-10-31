@@ -1,0 +1,76 @@
+---
+title: Avatar
+description: A person or entity marker with an image or a quiet initials fallback.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+Avatars mark people and entities. Give it an image `src`, or just a `label` and
+it renders Fraunces initials on a blueberry-muted ground inside a
+`primaryOutline` ring. One component covers lists, headers and card leading
+slots.
+
+## Import
+
+```tsx
+import { Avatar } from 'react-native-meowui';
+```
+
+## Usage
+
+```tsx
+// Initials fallback — first letters of the first two words.
+<Avatar label="Ada Lovelace" />
+
+// Explicit pixel size overrides the preset.
+<Avatar label="Ada Lovelace" size={56} />
+
+// Image fills the box; label still names it for accessibility.
+<Avatar src={require('./ada.png')} label="Ada Lovelace" />
+```
+
+## Sizes
+
+| Preset | Box (px) |
+| --- | --- |
+| `xs` | 24 |
+| `sm` | 32 |
+| `md` (default) | 40 |
+| `lg` | 48 |
+| `xl` | 64 |
+
+Initials scale with the box — 38% of its size — and stay on one line.
+
+## Behavior
+
+- Avatars are always circular; the 1px `primaryOutline` ring is fixed.
+- When `src` is set, the image fills the box with cover resizing.
+- Without `src`, initials render from `label`: first letters of the first two
+  words, uppercased. `ada lovelace` becomes `AL`.
+- The initials fill defaults to `colors.primaryMuted`; override with
+  `backgroundColor` and `textColor`.
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `size` | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl' \| number` | `'md'` (40) | Named size token or an explicit pixel size. |
+| `src` | `ImageProps['source']` | — | Image source. When set, the image fills the box; otherwise initials render. |
+| `label` | `string` | — | Name or label. Drives the initials fallback (first letters of the first two words, uppercased) and the accessibility label. |
+| `backgroundColor` | `string` | `colors.primaryMuted` | Fill color for the initials shape. |
+| `textColor` | `string` | `colors.onPrimaryMuted` | Initials color. |
+| `style` | `StyleProp<ViewStyle>` | — | Container style overrides. |
+| `testID` | `string` | — | Test identifier. |
+
+## Accessibility
+
+With `src`, the avatar takes role `image` and is announced by `label`. The
+initials fallback renders no role and no accessibility label — if the name
+matters to the screen reader, render it as adjacent text or wrap the avatar
+in a labeled element.
+
+## See also
+
+<LinkCard title="Card" href="/components/card/" description="Compose an Avatar into the CardTitle leading slot." />
+<LinkCard title="Chip" href="/components/chip/" description="Compact assist, filter and input chips." />
+<LinkCard title="Tokens" href="/theming/tokens/" description="The radius and color tokens Avatar reads." />

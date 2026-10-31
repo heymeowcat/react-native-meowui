@@ -1,0 +1,92 @@
+---
+title: IconButton
+description: A square touch target for a single icon — the quiet default for toolbars and list rows.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+`IconButton` is a soft square key for a single icon. It defaults to
+`outline` — a milk sheet on a strong 1px line with a 2px warm cast — and
+reserves `ghost`, `tonal` and `solid` for quieter or heavier contexts.
+
+The injected sizing matters: the component resolves the icon's `color` and
+`size` from its own variant and box size, so icons stay consistent without
+per-call props.
+
+## Import
+
+```tsx
+import { IconButton } from 'react-native-meowui';
+```
+
+## Usage
+
+```tsx
+<IconButton icon={<Icon name="search" />} onPress={openSearch} />
+<IconButton icon={<Icon name="delete" />} tone="error" onPress={remove} />
+<IconButton icon={<Icon name="notifications" />} selected onPress={toggle} />
+<IconButton icon={<Icon name="add" />} variant="solid" onPress={create} />
+```
+
+A toolbar row:
+
+```tsx
+<View style={{ flexDirection: 'row', gap: 4 }}>
+  <IconButton icon={<Icon name="arrow-back" />} onPress={goBack} />
+  <IconButton icon={<Icon name="bookmark" />} selected />
+  <IconButton icon={<Icon name="more-vert" />} onPress={showMenu} />
+</View>
+```
+
+## Variants
+
+| Variant | At rest | Pressed | Selected |
+| --- | --- | --- | --- |
+| `outline` | surface fill, `outlineStrong` border, espresso icon | tint, 1px shift, cast collapse | — |
+| `ghost` | surface fill, no border, espresso icon | muted tint | blueberry fill, `onPrimary` icon |
+| `tonal` | tone muted fill, `on*Muted` icon | tint, 1px shift, cast collapse | blueberry fill, `onPrimary` icon |
+| `solid` | tone fill, `on*` icon, same-fill border | tint, 1px shift, cast collapse | — |
+
+Every enabled key except a bare `ghost` sits on a 2px warm cast that collapses
+as the key presses down 1px and scales to 0.985. `selected` affects the ghost
+and tonal variants only — an `outline` or `solid` button ignores it.
+
+## Sizes
+
+Boxes come from `theme.metrics.icon`; the icon itself is 50% of the box,
+rounded:
+
+| Size | Box | Icon |
+| --- | --- | --- |
+| `sm` | 30 | 15 |
+| `md` | 40 | 20 |
+| `lg` | 48 | 24 |
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `icon` | `ReactNode` | — | Icon content — usually an `<Icon>`; resolved `color`/`size` are injected when supported. |
+| `variant` | `'ghost' \| 'tonal' \| 'solid' \| 'outline'` | `'outline'` | Visual shape. |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Box size from `theme.metrics.icon`. |
+| `tone` | `'primary' \| 'success' \| 'warning' \| 'error' \| 'info'` | `'primary'` | Semantic color family for tonal and solid fills. |
+| `disabled` | `boolean` | `false` | Disables interaction, renders muted. |
+| `selected` | `boolean` | `false` | Marks a ghost or tonal key as active — it fills blueberry. |
+| `onPress` | `() => void` | — | Press handler. |
+| `onLongPress` | `() => void` | — | Long-press handler. |
+| `accessibilityLabel` | `string` | — | Required when the icon alone is ambiguous. |
+| `testID` | `string` | — | Test identifier. |
+| `style` | `StyleProp<ViewStyle>` | — | Container style overrides. |
+
+## Accessibility
+
+Role `button` with `accessibilityState` `{ disabled, selected }`. The
+icon glyph carries no meaning to a screen reader, so pass
+`accessibilityLabel` whenever the icon alone is ambiguous — "Close", not
+"x".
+
+## See also
+
+<LinkCard title="Icon" href="/components/icon/" description="The glyph wrapper this button sizes and colors." />
+<LinkCard title="ToggleButton" href="/components/toggle-button/" description="Icon toggles that select one of many in a group." />
+<LinkCard title="Button" href="/components/button/" description="The labeled counterpart." />

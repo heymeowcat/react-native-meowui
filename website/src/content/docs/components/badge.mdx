@@ -1,0 +1,90 @@
+---
+title: Badge
+description: A small semantic status pill — a soft tinted well, an optional pip and a clamped count.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+Badge marks a host element — an icon, a tab, an avatar — with a count or a
+status signal. It is a soft tinted pill: a tone-muted fill, a 1px tone-tinted
+border and, by default, a 6px tone-colored pip. Omit `content` for a bare
+status dot. Numeric content clamps at `max`, so a count of 150 with the
+default maximum reads `99+`. The badge sizes itself to its content, so
+position it absolutely from the consumer.
+
+## Import
+
+```tsx
+import { Badge } from 'react-native-meowui';
+```
+
+## Usage
+
+```tsx
+// A bare status pip pinned to a host — position it from the consumer
+<View>
+  <IconButton icon={<Icon name="notifications" />} />
+  <Badge tone="error" style={{ position: 'absolute', top: -2, right: -4 }} />
+</View>
+
+// Counts, clamped at `max`
+<Badge content={3} tone="primary" />
+<Badge content={150} />
+
+// A text label without the leading pip
+<Badge content="New" tone="success" dot={false} />
+
+// A zero count renders nothing unless asked otherwise
+<Badge content={0} />
+<Badge content={0} showZero />
+```
+
+## Dot and count
+
+| Content | Renders |
+| --- | --- |
+| Omitted | A bare pip — 8dp at `md`, 6dp at `sm` |
+| Number | A pill with a 6px pip and a count that clamps to `N+` past `max` |
+| String | A pill with a 6px pip and the string as given |
+| `0` | Nothing, unless `showZero` is set |
+
+Pass `dot={false}` to drop the leading pip on labeled badges.
+
+## Tone
+
+The default tone is `neutral` — a quiet oat well with a muted border. Every
+tone tints the fill, border and label through its muted family, while the pip
+uses the solid tone color. Numeric labels are set at 11pt weight 500.
+
+## Sizes
+
+| Size | Count height | Horizontal padding | Bare pip |
+| --- | --- | --- | --- |
+| `sm` | 22 | 9 | 6 |
+| `md` | 26 | 11 | 8 |
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `content` | `string \| number` | — | Text or number to display. Omit for a bare pip. |
+| `tone` | `Tone` | `'neutral'` | Semantic color family — `neutral`, `primary`, `success`, `warning`, `error` or `info`. |
+| `dot` | `boolean` | `true` | Prefix a labeled badge with the 6px tone pip. |
+| `showZero` | `boolean` | `false` | Render the badge when the numeric content is `0`. |
+| `max` | `number` | `99` | Largest count rendered before clamping to `N+`. |
+| `size` | `'sm' \| 'md'` | `'md'` | Pip diameter and count height. |
+| `style` | `StyleProp<ViewStyle>` | — | Style overrides. |
+| `testID` | `string` | — | Test identifier. |
+
+## Accessibility
+
+The badge renders a plain view with no role; screen readers reach its text as
+static content, detached from the control it decorates. Fold the count into
+the host's `accessibilityLabel` instead — "Inbox, 3 unread" reads better than
+a stray "3".
+
+## See also
+
+<LinkCard title="Chip" href="/components/chip/" description="Compact assist, filter and input pills." />
+<LinkCard title="IconButton" href="/components/icon-button/" description="A square touch target for a single icon — a common badge host." />
+<LinkCard title="Color tokens" href="/theming/colors/" description="What each tone's muted fill, outline and pip resolve to in both modes." />

@@ -1,0 +1,70 @@
+---
+title: Collapsible
+description: Reveals or hides children by animating their measured height.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+`Collapsible` shows and hides content with a height animation. It is fully
+controlled — you pass `expanded` and own the state. The content stays mounted
+while collapsed, absolutely positioned inside the clipping box, so measurement
+survives collapse and height changes re-animate.
+
+## Import
+
+```tsx
+import { Collapsible } from 'react-native-meowui';
+```
+
+## Usage
+
+```tsx
+const [open, setOpen] = useState(false);
+
+<View style={{ gap: 8 }}>
+  <Button variant="ghost" onPress={() => setOpen((v) => !v)}>
+    {open ? 'Hide details' : 'Show details'}
+  </Button>
+  <Collapsible expanded={open}>
+    <Text variant="body">
+      Extended descriptions, secondary rows, anything that should fold away.
+    </Text>
+  </Collapsible>
+</View>
+```
+
+There is no built-in trigger. Pair it with a `Button`, a `ListItem` or any
+pressable and wire its state yourself.
+
+## Behavior
+
+- The wrapper animates its height to the content's measured height, timed with
+  `motion.durationBase` and an ease-out curve.
+- The height animation runs on the **JS driver** — a documented exception in
+  the kit. Height is a layout property and React Native's native driver only
+  supports opacity and transforms. The animated tree here is small, which
+  keeps JS-driven timing smooth.
+- Collapsed content receives no touches and is excluded from the accessibility
+  tree; expanding restores both.
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `expanded` | `boolean` | — | Required. Whether the content is visible. |
+| `children` | `ReactNode` | — | Required. Content revealed when expanded. |
+| `style` | `StyleProp<ViewStyle>` | — | Container style overrides. |
+| `testID` | `string` | — | Test identifier. |
+
+## Accessibility
+
+Collapsed content is hidden from assistive technology:
+`accessibilityElementsHidden` on iOS and
+`importantForAccessibility="no-hide-descendants"` on Android. Expanding
+restores normal visibility. Announce the state change from your own trigger —
+for rows that expand in place with that wiring built in, use `ListAccordion`.
+
+## See also
+
+<LinkCard title="List" href="/components/list/" description="ListAccordion expands rows with the same measured-height animation." />
+<LinkCard title="Button" href="/components/button/" description="A common trigger for a Collapsible region." />

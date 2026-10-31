@@ -1,0 +1,84 @@
+---
+title: Portal
+description: Teleport overlays above the surrounding tree — menus, dialogs and toasts that escape clipped parents.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+`Portal` teleports children to the nearest `PortalHost` above the
+surrounding tree. Content keeps rendering — and re-rendering — normally;
+only its position in the hierarchy changes. That is what lets menus,
+dialogs and toasts escape clipped or stacked parents. `PortalHost` is the
+mount point that renders that content above its own children.
+
+`<MeowProvider>` already includes a host, so most apps never mount one
+directly. Nest additional hosts when content must layer inside a specific
+region, such as a modal.
+
+## Import
+
+```tsx
+import { Portal, PortalHost } from 'react-native-meowui';
+```
+
+## Usage
+
+A badge that floats above its parent's clipping:
+
+```tsx
+<View style={{ overflow: 'hidden' }}>
+  <Portal zIndex={900}>
+    <Text>Rendered in the host's overlay, not here</Text>
+  </Portal>
+</View>
+```
+
+An extra host scoped to a modal, so portaled content stays inside it:
+
+```tsx
+<PortalHost>
+  <MyModalContent />
+</PortalHost>
+```
+
+If a `Portal` renders without a host above it, it renders nothing and
+warns in development. Restoring `<MeowProvider>` — or mounting a
+`<PortalHost>` — fixes it.
+
+## Stacking
+
+Entries sort by `zIndex`; ties keep mount order. Pass a token from
+`theme.zIndex` (`sticky`, `menu`, `sheet`, `dialog`, `toast`, `tooltip`) so
+overlapping overlays stack by token instead of mount order:
+
+```tsx
+<Portal zIndex={zIndex.menu}>   {/* 900 */}
+<Portal zIndex={zIndex.toast}>  {/* 1050 — renders above the menu */}
+```
+
+## Props
+
+### Portal
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `children` | `ReactNode` | — | Content to teleport to the nearest host. |
+| `zIndex` | `number` | `0` | Stacking level within the host (see `theme.zIndex`). |
+
+### PortalHost
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `children` | `ReactNode` | — | Content rendered below the portal layer. |
+
+## Accessibility
+
+Portaled content ends up in the host's overlay layer, outside the
+surrounding layout context. Give overlays their own roles, labels and
+announcements rather than relying on surrounding headings — see the
+concepts page for the full model.
+
+## See also
+
+<LinkCard title="Portals" href="/concepts/portals/" description="Why the kit renders overlays through portals, and how hosts nest." />
+<LinkCard title="FAB" href="/components/fab/" description="FABGroup renders its scrim and action stack through a portal." />

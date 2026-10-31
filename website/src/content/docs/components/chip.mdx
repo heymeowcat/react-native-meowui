@@ -1,0 +1,126 @@
+---
+title: Chip
+description: Compact assist, filter and input chips for metadata, filters and multi-select.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+`Chip` is a compact pill for metadata, filters and multi-select. Three
+variants with distinct jobs: `assist` nudges toward an action, `filter`
+toggles selection, `input` represents a value that can be removed.
+
+Every enabled chip sits on a 2px warm cast that collapses as the pill presses
+down 1px; selected filter and input chips fill with a solid tone. Filter and
+input chips draw their check and close glyphs internally, so chips work
+without an icon library.
+
+## Import
+
+```tsx
+import { Chip } from 'react-native-meowui';
+```
+
+## Usage
+
+```tsx
+<Chip label="Add to list" onPress={add} />
+
+<Chip
+  variant="filter"
+  label="Vegetarian"
+  selected={filters.vegetarian}
+  onPress={() => toggle('vegetarian')}
+/>
+
+<Chip
+  variant="input"
+  label="Design"
+  onClose={() => remove('Design')}
+/>
+```
+
+A filter row with state:
+
+```tsx
+function Filters() {
+  const [active, setActive] = useState<string[]>([]);
+
+  return (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      {OPTIONS.map((option) => (
+        <Chip
+          key={option}
+          variant="filter"
+          label={option}
+          selected={active.includes(option)}
+          onPress={() =>
+            setActive((prev) =>
+              prev.includes(option)
+                ? prev.filter((v) => v !== option)
+                : [...prev, option]
+            )
+          }
+        />
+      ))}
+    </View>
+  );
+}
+```
+
+## Variants
+
+| Variant | At rest | Selected | Press calls |
+| --- | --- | --- | --- |
+| `assist` | surface fill, `outlineStrong` border, muted label | — (selection ignored) | `onPress` |
+| `filter` | surface fill, `outlineStrong` border | solid tone fill, built-in check | `onPress` |
+| `input` | surface fill, `outlineStrong` border | solid tone fill | `onClose` |
+
+Notes on the shapes:
+
+- Every enabled chip draws a 1px border: `outlineStrong` at rest, the tone
+  fill when selected. Disabled chips use the quieter `outline`.
+- The selected label turns `on*` and weight 600; at rest it is
+  `onSurfaceMuted` at weight 500.
+- `filter` shows the built-in check glyph when selected — unless you pass
+  your own `icon`, which replaces it.
+- `input` is only pressable when `onClose` is provided; without it the chip
+  renders disabled. The built-in close glyph appears with the handler.
+
+The `tone` prop colors the selected state for filter and input chips.
+
+## Sizes
+
+| Size | Height | Label |
+| --- | --- | --- |
+| `sm` | 28 | 12pt |
+| `md` | 32 | 12pt |
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `label` | `string` | — | The chip's text. |
+| `variant` | `'assist' \| 'filter' \| 'input'` | `'assist'` | Visual shape and behavior. |
+| `size` | `'sm' \| 'md'` | `'md'` | Height and label size. |
+| `tone` | `'primary' \| 'success' \| 'warning' \| 'error' \| 'info'` | `'primary'` | Semantic color family for the selected state. |
+| `selected` | `boolean` | `false` | Filter/input chips only: reflects and drives selection. |
+| `disabled` | `boolean` | `false` | Disables interaction, renders muted. |
+| `icon` | `ReactNode` | — | Leading content. Filter chips show a checkmark here when selected. |
+| `onClose` | `() => void` | — | Input chips only: shows a trailing close affordance. |
+| `onPress` | `() => void` | — | Press handler for assist and filter chips. |
+| `accessibilityLabel` | `string` | label | Accessible name; falls back to the label. |
+| `style` | `StyleProp<ViewStyle>` | — | Container style overrides. |
+| `testID` | `string` | — | Test identifier. |
+
+## Accessibility
+
+Role `button` with `accessibilityState` `{ disabled, selected }` — the
+`selected` state is announced for filter and input chips only, since
+assist chips cannot be selected. The accessible name falls back to
+`label`; pass `accessibilityLabel` when the label alone is unclear, such
+as an input chip that only shows a tag name.
+
+## See also
+
+<LinkCard title="SegmentedButtons" href="/components/segmented-buttons/" description="Bounded choices where one option is always visible." />
+<LinkCard title="Button" href="/components/button/" description="Full-size actions when a chip is too small for the job." />

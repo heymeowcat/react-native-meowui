@@ -1,0 +1,80 @@
+---
+title: Snackbar
+description: A transient confirmation bar anchored to the bottom of the viewport, with an optional action.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+Snackbar is a transient confirmation bar that renders through a
+[Portal](/concepts/portals/), anchored to the bottom of the viewport. It is
+an espresso slip — `inverseSurface` ground, a cream hairline, `xl` corners
+and a soft layered shadow. It slides up 16px while fading in,
+auto-dismisses after four seconds, and keeps animating out after `visible`
+flips false — so keep the component mounted and let it own the exit. One
+action, such as Undo, may ride along; pressing it dismisses the snackbar as
+well.
+
+## Import
+
+```tsx
+import { Snackbar } from 'react-native-meowui';
+```
+
+## Usage
+
+```tsx
+function SaveNotice() {
+  const [visible, setVisible] = useState(false);
+
+  return (
+    <View>
+      <Button onPress={() => setVisible(true)}>Save report</Button>
+
+      {/* Keep the component mounted so it can animate out */}
+      <Snackbar
+        visible={visible}
+        message="Report saved"
+        action={{ label: 'Undo', onPress: () => undoSave() }}
+        onDismiss={() => setVisible(false)}
+      />
+    </View>
+  );
+}
+```
+
+## Timing and dismissal
+
+| Event | What happens |
+| --- | --- |
+| Auto-dismiss | After `duration` milliseconds, `onDismiss` is called. The timer restarts when `message` changes, so a replaced notice gets a full window. |
+| Action pressed | The action's `onPress` runs first, then `onDismiss`. |
+| `visible` flips false | The snackbar animates out, then unmounts itself. |
+
+`onDismiss` is your cue in every case — flip `visible` there.
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `visible` | `boolean` | — | Drives presentation; keep rendering the component so it can animate out. |
+| `message` | `string` | — | Message body, wrapped at two lines. |
+| `action` | `SnackbarAction` | — | Single trailing action. Pressing it also dismisses the snackbar. |
+| `duration` | `number` | `4000` | Milliseconds before auto-dismiss. |
+| `onDismiss` | `() => void` | — | Called on auto-dismiss and after the action is pressed — flip `visible` here. |
+| `style` | `StyleProp<ViewStyle>` | — | Style overrides for the surface. |
+| `testID` | `string` | — | Test identifier. |
+
+`SnackbarAction` is `{ label, onPress }`. The bar renders on the inverse
+surface color, so it stays legible over any content beneath it.
+
+## Accessibility
+
+The surface carries `accessibilityLiveRegion="polite"`, so screen readers
+announce the message when it appears. The action renders with role `button`,
+labeled by its `label`.
+
+## See also
+
+<LinkCard title="Toast" href="/components/toast/" description="Provider-owned transient notices stacked from the top." />
+<LinkCard title="Banner" href="/components/banner/" description="An inline strip for persistent, non-blocking messages." />
+<LinkCard title="Portals" href="/concepts/portals/" description="How overlay components render above everything else." />

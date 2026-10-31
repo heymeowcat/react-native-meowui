@@ -1,0 +1,53 @@
+---
+title: Installation
+description: Add MeowUI to a React Native or Expo project.
+---
+
+MeowUI ships as a single package with **zero runtime dependencies** — the only
+peer dependencies are `react` and `react-native` themselves.
+
+```bash
+npm install react-native-meowui
+```
+
+```bash
+yarn add react-native-meowui
+```
+
+```bash
+pnpm add react-native-meowui
+```
+
+## Requirements
+
+| | |
+| --- | --- |
+| React | ≥ 18.2 |
+| React Native | ≥ 0.74 |
+| New Architecture | Supported (Fabric-ready, no shims) |
+| Babel plugins | None |
+| Expo | Supported (any recent SDK) |
+
+There is nothing to configure — no Babel plugin to add, no native modules to
+link, no provider requirements beyond the one you choose to render.
+
+## Icon support (optional)
+
+MeowUI renders **any** React element in `icon` props, so icon libraries work
+without any adapter. If you want name-based icons via the `<Icon>` adapter,
+register a renderer once at startup — `react-native-vector-icons` and
+`@expo/vector-icons` work out of the box:
+
+```tsx
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { setIconRenderer } from 'react-native-meowui';
+
+setIconRenderer(Ionicons);
+```
+
+See [Icons](/concepts/icons/) for details.
+
+## Next steps
+
+- [Quick start](/getting-started/quick-start/) — render your first screen
+- [Theming overview](/theming/overview/) — make it match your brand

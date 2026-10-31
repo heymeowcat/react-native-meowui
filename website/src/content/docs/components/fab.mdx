@@ -1,0 +1,141 @@
+---
+title: FAB
+description: Floating action button, alone or expanding into a labeled action stack with a scrim.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+`FAB` is the floating action — a tactile blueberry pill key with a cream icon
+and a 2px warm cast that collapses as it presses down 1px. It is pinned by
+the consumer via `style` — typically `position: 'absolute'` — so placement
+stays in your hands. Pass `label` for the extended shape.
+
+`FABGroup` wraps a FAB that expands into a labeled action stack with a
+light scrim behind it. It renders through a `Portal`, so it can be mounted
+anywhere and always floats above app content.
+
+## Import
+
+```tsx
+import { FAB, FABGroup } from 'react-native-meowui';
+```
+
+## Usage
+
+A plain FAB pinned to the bottom corner:
+
+```tsx
+<FAB
+  icon={<Icon name="add" />}
+  style={{ position: 'absolute', bottom: 16, right: 16 }}
+  onPress={create}
+/>
+```
+
+An extended FAB — pass `label`:
+
+```tsx
+<FAB
+  icon={<Icon name="add" />}
+  label="New report"
+  style={{ position: 'absolute', bottom: 16, right: 16 }}
+  onPress={create}
+/>
+```
+
+A group that expands into actions:
+
+```tsx
+<FABGroup
+  icon={<Icon name="add" />}
+  actions={[
+    { icon: <Icon name="camera" />, label: 'Scan', onPress: scan },
+    { icon: <Icon name="create" />, label: 'Draft', onPress: draft },
+  ]}
+/>
+```
+
+Control it externally by passing `open` — without it the group manages its
+own visibility and reports changes through `onOpenChange`.
+
+## Sizes
+
+FAB boxes are larger than control metrics by design:
+
+| Size | Box |
+| --- | --- |
+| `sm` | 40 |
+| `md` | 52 |
+| `lg` | 60 |
+
+The icon is 45% of the box, rounded. Extended FABs render the `label` text
+variant — 12pt, weight 600 — beside the icon, with 18dp of horizontal padding.
+
+## FABGroup behavior
+
+- The scrim fades in from `colors.scrim`; tapping it closes the group.
+- The anchor icon rotates 45 degrees while open.
+- Actions fade and slide up 12 points over `motion.durationBase`.
+- Each action is a 40-point circular milk-paper key with an `outlineStrong`
+  hairline and a 2px warm cast, its label in an espresso (`inverseSurface`)
+  pill beside it.
+- Pressing an action shifts it 1px and scales it to 0.985 as the cast
+  collapses.
+- The whole layer stacks at `theme.zIndex.menu`.
+
+## Props
+
+### FAB
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `icon` | `ReactNode` | — | Icon content — resolved `color`/`size` are injected when supported. |
+| `label` | `string` | — | When set, renders an extended FAB with the label beside the icon. |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Box size. |
+| `disabled` | `boolean` | `false` | Disables interaction, renders muted. |
+| `onPress` | `() => void` | — | Press handler. |
+| `onLongPress` | `() => void` | — | Long-press handler. |
+| `accessibilityLabel` | `string` | label | Accessible name. Falls back to `label`. |
+| `accessibilityState` | `{ disabled?: boolean; expanded?: boolean }` | `{ disabled }` | State announced to screen readers. |
+| `testID` | `string` | — | Test identifier. |
+| `style` | `StyleProp<ViewStyle>` | — | Container style overrides — use this to pin the button. |
+
+### FABGroup
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `icon` | `ReactNode` | — | Icon shown on the anchor FAB (usually a plus). |
+| `label` | `string` | — | Extended-FAB label for the anchor; omit for the icon-only shape. |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Anchor FAB box size. |
+| `actions` | `FABGroupAction[]` | — | Actions revealed when the group opens. |
+| `bottom` | `number` | `16` | Distance from the bottom edge of the viewport. |
+| `right` | `number` | `16` | Distance from the right edge of the viewport. |
+| `open` | `boolean` | — | Control visibility externally; unmanaged when omitted. |
+| `onOpenChange` | `(open: boolean) => void` | — | Called whenever the group opens or closes. |
+| `style` | `StyleProp<ViewStyle>` | — | Style for the portal layer. |
+| `testID` | `string` | — | Test identifier for the layer. |
+
+Each entry in `actions` is a `FABGroupAction`:
+
+```tsx
+interface FABGroupAction {
+  icon: ReactNode;
+  label: string;
+  onPress?: () => void;
+  disabled?: boolean;
+  testID?: string;
+}
+```
+
+## Accessibility
+
+Both components are role `button`. The anchor FAB falls back to `label`
+for its accessible name; the group anchor announces "Expand actions" or
+"Collapse actions" with an `expanded` state, the scrim announces "Close
+actions", and each action is labeled by its `label` — which is why the
+field is required.
+
+## See also
+
+<LinkCard title="Portal" href="/components/portal/" description="How FABGroup floats above app content." />
+<LinkCard title="IconButton" href="/components/icon-button/" description="Inline icon actions that stay in the layout." />

@@ -1,0 +1,70 @@
+---
+title: Skeleton
+description: A pulsing placeholder that sketches the shape of content while it loads.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+Skeleton is a quiet block in the muted surface color whose opacity pulses
+between 0.5 and 1 on a native-driven loop. Compose several to sketch the
+shape of the real content — text lines, avatars, card blocks — instead of
+showing a spinner. The layout the user sees loading is the layout they get.
+
+## Import
+
+```tsx
+import { Skeleton } from 'react-native-meowui';
+```
+
+## Usage
+
+```tsx
+function ProfileSkeleton() {
+  return (
+    <View style={{ padding: 16, gap: 12 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <Skeleton width={40} height={40} circle />
+        <View style={{ flex: 1, gap: 6 }}>
+          <Skeleton width="60%" height={16} />
+          <Skeleton width="40%" height={12} />
+        </View>
+      </View>
+      <Skeleton height={80} radius="md" />
+    </View>
+  );
+}
+```
+
+## Shaping placeholders
+
+| Placeholder | Recipe |
+| --- | --- |
+| Text line | The default 14dp height with a partial `width` |
+| Avatar | `circle` — `width` collapses to `height` and the radius becomes full |
+| Card or media block | A larger `height` with `radius="md"` or wider |
+
+All skeletons pulse in sync, so a composed group reads as one loading region
+rather than several busy elements.
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `width` | `number \| string` | `'100%'` | Block width. |
+| `height` | `number` | `14` | Block height in dp. |
+| `radius` | `RadiusKey` | `'sm'` | Corner radius token. |
+| `circle` | `boolean` | `false` | Force a circle: `width` collapses to `height` and the radius becomes full. |
+| `style` | `StyleProp<ViewStyle>` | — | Style overrides. |
+| `testID` | `string` | — | Test identifier. |
+
+## Accessibility
+
+Skeletons render plain views with no accessible role — they are decoration
+for sighted users. Keep the wait short, and announce the loading state at a
+higher level if needed, for example with a live region on the container that
+swaps to the real content.
+
+## See also
+
+<LinkCard title="ActivityIndicator" href="/components/activity-indicator/" description="A quiet ring spinner for unmeasured waits." />
+<LinkCard title="Color tokens" href="/theming/colors/" description="What the muted surface placeholder color resolves to in both modes." />

@@ -1,0 +1,62 @@
+---
+title: Icons
+description: Use any icon library — or register one renderer for name-based icons.
+---
+
+MeowUI takes a deliberate position on icons: **the kit ships none**. Icon
+fonts and SVG packs are an app-level concern, and bundling one would force a
+dependency on every consumer.
+
+## Pass any element
+
+Every `icon` prop accepts a `ReactNode`. This is the primary API and works
+with anything — `@expo/vector-icons`, `react-native-vector-icons`, SVG via
+`react-native-svg`, an image, emoji:
+
+```tsx
+import Ionicons from '@expo/vector-icons/Ionicons';
+
+<Button icon={<Ionicons name="save" color="white" />}>Save</Button>
+<IconButton icon={<Ionicons name="settings" />} accessibilityLabel="Settings" />
+```
+
+Components that set color contextually — `Button`, `IconButton`, `FAB`,
+`Tabs`, list rows — clone the icon element and inject a resolved `color`, so
+one icon definition follows the theme. `IconButton` and `FAB` also inject a
+proportional `size`. `Button` leaves an icon alone when it already sets its
+own `color`; the other slots restate the contextual color. A custom SVG
+still works if it ignores the injected props.
+
+## The Icon adapter
+
+If you prefer name-based icons across the whole kit, register a renderer once
+at startup. `react-native-vector-icons` and `@expo/vector-icons` families
+satisfy the contract as-is:
+
+```tsx
+// index.js / App.tsx — before anything renders
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { setIconRenderer } from 'react-native-meowui';
+
+setIconRenderer(Ionicons);
+```
+
+```tsx
+import { Icon } from 'react-native-meowui';
+
+<Icon name="checkmark-circle" size={20} color="#37704B" />
+```
+
+- `color` defaults to `theme.colors.onSurface`.
+- Without a registered renderer, `<Icon>` renders nothing (with a dev-mode
+  warning) — safe fallback, never a crash.
+- Components that take `ReactNode` icons are unaffected either way.
+
+## Built-in glyphs
+
+A few components draw their own tiny glyphs from `View`s instead of an icon
+font — the checkmark on a selected `Chip`, the close ✕ on an input chip, the
+chevrons in `Appbar.BackAction`, `Menu`'s selected check,
+`DataTablePagination`'s pager, `Searchbar`'s magnifier and clear button. This
+keeps those components functional with **zero icon setup**; pass `icon` props
+to replace them with your own.

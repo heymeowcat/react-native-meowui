@@ -1,0 +1,136 @@
+---
+title: Card
+description: A composed content container — cover, title, body and actions on a Surface.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+Cards group related content into one container. `Card` is the shell — a
+`Surface` with a warm hairline and a soft paper cast — and composes with four
+slot components: `CardCover`, `CardTitle`, `CardContent` and `CardActions`.
+Set `onPress` to make the entire card interactive.
+
+## Import
+
+```tsx
+import { Card, CardCover, CardTitle, CardContent, CardActions } from 'react-native-meowui';
+```
+
+## Usage
+
+```tsx
+<Card>
+  <CardCover source={require('./trail.jpg')} height={140} />
+  <CardTitle
+    title="Ridgeline Loop"
+    subtitle="12.4 km · Moderate"
+    leading={<Avatar label="Park Service" size="sm" />}
+  />
+  <CardContent>
+    <Text variant="body">
+      A steady climb through old-growth forest, with one exposed scramble near
+      the summit.
+    </Text>
+  </CardContent>
+  <CardActions>
+    <Button variant="ghost">Details</Button>
+    <Button>Save</Button>
+  </CardActions>
+</Card>
+```
+
+A pressable card replaces per-slot buttons with one tap target.
+
+```tsx
+<Card onPress={() => openTrail(trail.id)}>
+  <CardCover source={require('./trail.jpg')} />
+  <CardTitle title="Ridgeline Loop" subtitle="12.4 km · Moderate" />
+  <CardContent>
+    <Text variant="body">A steady climb through old-growth forest.</Text>
+  </CardContent>
+</Card>
+```
+
+## Composition
+
+| Slot | Purpose |
+| --- | --- |
+| `CardCover` | Full-bleed image at the top; the card clips it to its corners. |
+| `CardTitle` | Title line plus optional subtitle, with an optional leading slot. |
+| `CardContent` | The padded body; children render as-is. |
+| `CardActions` | Right-aligned action row; sits directly under `CardContent`. |
+
+All slots are optional and unordered, though `CardCover` above `CardTitle` is
+the usual arrangement.
+
+## Behavior
+
+- `overflow: 'hidden'` is always applied so `CardCover` clips to the card's
+  corners. The cast is drawn by a wrapper behind the card, so clipping the
+  content never clips the depth.
+- With `onPress`, the whole card presses like a soft key: it translates 1px
+  down, tints `colors.surfaceMuted`, and its cast collapses to `0`.
+- Without `onPress` the card is static.
+- `disabled` on a pressable card reports `disabled` and ignores presses.
+
+## Props
+
+### Card props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `children` | `ReactNode` | — | Card content, usually the slot components. |
+| `elevation` | `0 \| 1 \| 2 \| 3` | `1` | Soft cast depth, passed to `Surface` as `cast`. Pressable cards collapse it while pressed. |
+| `outlined` | `boolean` | `true` | Draw the 1px warm hairline border. |
+| `radius` | `RadiusKey` | `'xl'` | Corner radius token (16). |
+| `onPress` | `() => void` | — | When set, the whole card presses with a `surfaceMuted` tint, a 1px shift and a collapsed cast. |
+| `disabled` | `boolean` | `false` | Disables interaction on pressable cards. |
+| `style` | `StyleProp<ViewStyle>` | — | Container style overrides. |
+| `testID` | `string` | — | Test identifier. |
+
+### CardCover props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `source` | `ImageProps['source']` | — | Required. Image source, rendered edge-to-edge at the top of the card. |
+| `height` | `number` | `160` | Cover height in pixels. |
+| `style` | `StyleProp<ImageStyle>` | — | Image style overrides. |
+| `testID` | `string` | — | Test identifier. |
+
+### CardTitle props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `title` | `string` | — | Required. Title line. |
+| `subtitle` | `string` | — | Optional secondary line under the title. |
+| `leading` | `ReactNode` | — | Leading content — avatar, icon, anything. |
+| `style` | `StyleProp<ViewStyle>` | — | Container style overrides. |
+| `testID` | `string` | — | Test identifier. |
+
+### CardContent props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `children` | `ReactNode` | — | Body content, rendered as-is. |
+| `style` | `StyleProp<ViewStyle>` | — | Container style overrides. |
+| `testID` | `string` | — | Test identifier. |
+
+### CardActions props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `children` | `ReactNode` | — | Action content, usually buttons. |
+| `style` | `StyleProp<ViewStyle>` | — | Container style overrides. |
+| `testID` | `string` | — | Test identifier. |
+
+## Accessibility
+
+Without `onPress` the card is a plain container. With `onPress` it takes role
+`button` and reports `accessibilityState` `{ disabled }`. The slot components
+add no roles; text inside `CardTitle` and `CardContent` is announced as usual.
+
+## See also
+
+<LinkCard title="Surface" href="/components/surface/" description="The container Card is built on." />
+<LinkCard title="Avatar" href="/components/avatar/" description="A leading marker for CardTitle." />
+<LinkCard title="Tokens" href="/theming/tokens/" description="Radius, cast and color tokens Card reads." />

@@ -1,0 +1,80 @@
+---
+title: Switch
+description: A controlled on/off toggle with a native-driven thumb.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+Switch is a controlled on/off toggle. The thumb glides between ends on a
+native-driven transform — only the translate is animated, on a fast
+decelerating 110 ms curve — so the gesture stays smooth on low-end devices.
+The 50×30 track carries a 1px border; while off it stays `surfaceActive` with
+an `outlineStrong` line, and the 24pt paper thumb keeps two soft ridges and a
+1px cast. Switching on fills the track with the tone and the thumb's cast
+disappears.
+
+## Import
+
+```tsx
+import { Switch } from 'react-native-meowui';
+```
+
+## Usage
+
+The component is controlled: you own the state, and `onValueChange` hands you
+the next value.
+
+```tsx
+const [wifi, setWifi] = useState(true);
+
+<Switch checked={wifi} onValueChange={setWifi} accessibilityLabel="Wi-Fi" />
+```
+
+Tones color the on state; a disabled switch that is on keeps a muted fill
+instead of fading out.
+
+```tsx
+const [boost, setBoost] = useState(false);
+
+<Switch
+  checked={boost}
+  onValueChange={setBoost}
+  tone="success"
+  accessibilityLabel="Performance boost"
+/>
+
+<Switch checked accessibilityLabel="Managed by policy" disabled />
+```
+
+The touch target is at least 44pt tall around the track, so the row area
+around the switch toggles it; the switch itself stays its intrinsic width.
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `checked` | `boolean` | — | Whether the switch is on. |
+| `onValueChange` | `(checked: boolean) => void` | — | Called with the next state when the switch is pressed. |
+| `disabled` | `boolean` | `false` | Disables interaction. |
+| `tone` | `SwitchTone` | `'primary'` | Semantic color family for the on state. |
+| `accessibilityLabel` | `string` | — | Accessibility label — the control is glyph-only, so provide one. |
+| `style` | `StyleProp<ViewStyle>` | — | Hit-area style overrides. |
+| `testID` | `string` | — | Test identifier. |
+
+## Tones
+
+The `tone` prop selects the on-state fill — `'primary'` (default),
+`'success'`, `'warning'`, `'error'`, `'info'`. The off state is neutral
+regardless of tone.
+
+## Accessibility
+
+Role `switch` with `accessibilityState` `{ checked, disabled }`. The control
+communicates only through its glyph, so pass `accessibilityLabel` describing
+what it turns on or off.
+
+## See also
+
+<LinkCard title="Checkbox" href="/components/checkbox/" description="A checked state with a visible label in the row." />
+<LinkCard title="Slider" href="/components/slider/" description="For values on a continuous range instead of two states." />
+<LinkCard title="Color tokens" href="/theming/colors/" description="What on-state fills and muted tracks resolve to in both modes." />

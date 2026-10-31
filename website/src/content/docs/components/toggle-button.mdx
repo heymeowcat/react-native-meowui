@@ -1,0 +1,108 @@
+---
+title: ToggleButton
+description: An icon toggle — radio behavior in a group, boolean flip on its own.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+`ToggleButton` is an icon toggle. Inside a `ToggleButtonGroup` it behaves
+like a radio — exactly one item selected at a time, lifted as a milk-paper
+key inside a recessed oat tray. On its own it flips a boolean with a quiet
+blueberry tonal fill. Selection is never colorful.
+
+The group is a soft, bordered tray that suits toolbars — the labelled
+sibling of `SegmentedButtons` with icons instead of text.
+
+## Import
+
+```tsx
+import { ToggleButton, ToggleButtonGroup } from 'react-native-meowui';
+```
+
+## Usage
+
+Standalone — a boolean flip:
+
+```tsx
+function Bold() {
+  const [bold, setBold] = useState(false);
+
+  return (
+    <ToggleButton
+      icon={<Icon name="text" />}
+      selected={bold}
+      onValueChange={setBold}
+      accessibilityLabel="Bold"
+    />
+  );
+}
+```
+
+Grouped — one of several:
+
+```tsx
+function Alignment() {
+  const [align, setAlign] = useState<string | null>('left');
+
+  return (
+    <ToggleButtonGroup value={align} onValueChange={setAlign}>
+      <ToggleButton icon={<Icon name="align-left" />} value="left" />
+      <ToggleButton icon={<Icon name="align-center" />} value="center" />
+      <ToggleButton icon={<Icon name="align-right" />} value="right" />
+    </ToggleButtonGroup>
+  );
+}
+```
+
+Pass `null` as the group's `value` when nothing should be selected.
+
+## Behavior
+
+- A `ToggleButton` counts as "in a group" when it has a `value` and sits
+  under a group. Group members ignore their own `selected` prop and
+  `onValueChange` callback.
+- Pressing a group member selects it; the previous selection is replaced.
+  Group selections cannot be toggled off.
+- Each cell is 40 by 40 points; icons receive the resolved content color.
+- The group is a `surfaceMuted` tray with a 1px `outline` border, `xl`
+  (16px) corners, 3px padding and 2px gaps. A selected key rises on
+  `surface` with an `outlineStrong` border and a 1px cast.
+- A standalone selected button fills `primaryMuted` with `onPrimaryMuted`
+  content. Press feedback is a `surfaceMuted` tint with an opacity dip.
+
+## Props
+
+### ToggleButtonGroup
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `value` | `string \| null` | — | The selected item's value, or null when nothing is selected. |
+| `onValueChange` | `(value: string) => void` | — | Called with the newly selected value. |
+| `children` | `ReactNode` | — | The `ToggleButton`s of the group. |
+| `accessibilityLabel` | `string` | — | Label announced for the group. |
+| `style` | `StyleProp<ViewStyle>` | — | Track style overrides. |
+
+### ToggleButton
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `icon` | `ReactNode` | — | Icon content; resolved `color` is injected when supported. |
+| `value` | `string` | — | Group item identity. Standalone buttons ignore this. |
+| `selected` | `boolean` | `false` | Standalone mode: boolean state instead of group membership. |
+| `onValueChange` | `(selected: boolean) => void` | — | Standalone mode: called with the next boolean state. |
+| `disabled` | `boolean` | `false` | Disables interaction, renders muted. |
+| `accessibilityLabel` | `string` | — | Accessible name — required when the icon alone is ambiguous. |
+| `style` | `StyleProp<ViewStyle>` | — | Cell style overrides. |
+| `testID` | `string` | — | Test identifier. |
+
+## Accessibility
+
+The group renders role `radiogroup`. Group members announce as `radio`
+with a `checked` state; standalone buttons announce as `button` with a
+`selected` state. Icons carry no meaning to a screen reader, so pass
+`accessibilityLabel` on each button.
+
+## See also
+
+<LinkCard title="SegmentedButtons" href="/components/segmented-buttons/" description="The labeled, bordered sibling for text choices." />
+<LinkCard title="IconButton" href="/components/icon-button/" description="Action buttons for the same toolbar." />

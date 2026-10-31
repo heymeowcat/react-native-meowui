@@ -1,0 +1,84 @@
+---
+title: Dark mode
+description: Follow the OS, force a mode, or control it yourself.
+---
+
+## Follow the OS (default)
+
+With no props, `MeowProvider` tracks the system color scheme:
+
+```tsx
+<MeowProvider>{children}</MeowProvider>
+```
+
+## Force a mode
+
+```tsx
+<MeowProvider mode="dark">{children}</MeowProvider>
+<MeowProvider mode="light">{children}</MeowProvider>
+```
+
+## Switch at runtime
+
+The uncontrolled provider manages a preference (`'light' | 'dark' | 'system'`)
+internally and exposes it through `useThemeController`:
+
+```tsx
+import { Button, useThemeController } from 'react-native-meowui';
+
+function ThemeToggle() {
+  const { mode, setMode, toggleMode } = useThemeController();
+
+  return (
+    <>
+      <Button variant="ghost" onPress={toggleMode}>
+        {mode === 'dark' ? 'Light' : 'Dark'} mode
+      </Button>
+      <Button variant="ghost" onPress={() => setMode('system')}>
+        Use system
+      </Button>
+    </>
+  );
+}
+```
+
+Hook `onModeChange` to persist the preference or fire analytics:
+
+```tsx
+<MeowProvider onModeChange={(mode) => storage.set('theme', mode)}>
+  {children}
+</MeowProvider>
+```
+
+## Controlled
+
+If the mode lives in your own state (Redux, MMKV, a settings screen), build the
+theme yourself and pass it — the provider renders exactly what it receives:
+
+```tsx
+import { createTheme, MeowProvider } from 'react-native-meowui';
+
+function Root() {
+  const mode = useAppThemeMode(); // your store
+  const theme = useMemo(() => createTheme({ mode, ...overrides }), [mode]);
+
+  return <MeowProvider theme={theme}>{children}</MeowProvider>;
+}
+```
+
+## How dark mode differs
+
+The dark palette is not an inversion — it is tuned separately:
+
+- Surfaces lift by brightness (`#211C17 → #2A241E → #352D25`) while hairline
+  borders deepen, so depth reads on OLED and LCD alike.
+- The blueberry primary flips to pale periwinkle (`#3F528C → #9FB0E8`) with
+  espresso `onPrimary`, keeping the keys present without glowing.
+- Semantic fills lighten (`error` `#AF3B31 → #F19A8F`) while their badge
+  wells deepen, holding AA contrast both ways.
+- The scrim deepens to `rgba(0,0,0,0.55)`, and `inverseSurface` flips to
+  cream (`#F7F0E4`) so snackbars and code blocks stay high-contrast.
+- Both `shadow` and `shadowSoft` lose their warmth and gain alpha
+  (`rgba(0,0,0,0.4)` / `rgba(0,0,0,0.25)`), so casts stay visible on cocoa.
+
+See the full values in [Color tokens](/theming/colors/).

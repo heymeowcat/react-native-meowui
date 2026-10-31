@@ -1,0 +1,92 @@
+---
+title: BottomSheet
+description: A Surface docked to the bottom edge that slides up from its own measured height.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+`BottomSheet` presents secondary content — filters, pickers, quick actions —
+without leaving the current screen. A fading scrim covers the page, and a
+`Surface` with a 16px radius on every edge and a soft layered shadow docks to
+the bottom, capped at 85% of the viewport height. It slides up from its own
+measured height.
+
+## Import
+
+```tsx
+import { BottomSheet } from 'react-native-meowui';
+```
+
+## Usage
+
+Gate presentation with `visible`, and keep the component mounted while it
+animates out:
+
+```tsx
+import { useState } from 'react';
+import { BottomSheet, Button, Text } from 'react-native-meowui';
+
+function FiltersSheet() {
+  const [visible, setVisible] = useState(false);
+
+  return (
+    <>
+      <Button variant="outline" onPress={() => setVisible(true)}>
+        Filters
+      </Button>
+
+      <BottomSheet
+        visible={visible}
+        onDismiss={() => setVisible(false)}
+        title="Filters"
+      >
+        <Text>Filter controls go here.</Text>
+        <Button onPress={() => setVisible(false)}>Apply</Button>
+      </BottomSheet>
+    </>
+  );
+}
+```
+
+## The handle
+
+With `handle` (the default) a 40x4 grab bar renders above the content,
+centered. It is a press-to-dismiss control, not a drag gesture — tapping it
+calls `onDismiss` when `dismissable` is true, exactly like tapping the scrim.
+
+## Animation
+
+The slide distance is the sheet's own measured height: an `onLayout` pass
+measures the surface, and the sheet translates between that height and 0.
+Until the first layout pass lands the sheet is kept transparent, so it never
+flashes in place at full height.
+
+Children stay mounted during the close animation and are removed only when it
+finishes — state inside the sheet survives a close/reopen cycle.
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `visible` | `boolean` | — | Drives presentation; keep rendering the component so it can animate out. |
+| `onDismiss` | `() => void` | — | Called on scrim tap and handle tap (when `dismissable`). |
+| `children` | `ReactNode` | — | Sheet content, rendered inside the surface. |
+| `title` | `string` | — | Optional centered title under the handle. |
+| `handle` | `boolean` | `true` | Shows the 40x4 grab bar; tapping it dismisses. |
+| `dismissable` | `boolean` | `true` | Whether the scrim and handle dismiss. |
+| `style` | `StyleProp<ViewStyle>` | — | Style overrides for the sheet surface. |
+| `contentContainerStyle` | `StyleProp<ViewStyle>` | — | Style overrides for the animated fullscreen layer around the surface. |
+| `testID` | `string` | — | Test identifier. |
+
+## Accessibility
+
+Both ways out are labeled buttons — the scrim and the handle, each announced
+as "Dismiss sheet" and disabled while the sheet is closed or not dismissable.
+The sheet surface sets `accessibilityViewIsModal`, so screen readers treat it
+as its own region.
+
+## See also
+
+<LinkCard title="Dialog" href="/components/dialog/" description="A centered decision instead of a bottom-docked panel." />
+<LinkCard title="Modal" href="/components/modal/" description="The generic scrim when you need custom placement." />
+<LinkCard title="Portals & overlays" href="/concepts/portals/" description="How overlays escape the view tree and stack by zIndex token." />

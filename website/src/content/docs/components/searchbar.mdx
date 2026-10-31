@@ -1,0 +1,85 @@
+---
+title: Searchbar
+description: A milk-paper search field with a built-in magnifier and clear affordance.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+Searchbar is a purpose-built search field. It shares the instrument grammar
+of `TextInput` — a milk-paper well, 1px `outlineStrong` border and 12px
+radius — with a stamped magnifier glyph and an optional clear affordance
+built in. No icon library required.
+
+The field is 46dp tall with 14dp horizontal padding and 15pt input text;
+disabled fields settle to the muted surface.
+
+## Import
+
+```tsx
+import { Searchbar } from 'react-native-meowui';
+```
+
+## Usage
+
+The field is controlled: you own the text, and `onChangeText` fires on every
+change. Provide `onClear` and the clear button appears whenever the value is
+non-empty.
+
+```tsx
+const [query, setQuery] = useState('');
+
+<Searchbar
+  value={query}
+  onChangeText={setQuery}
+  placeholder="Search notes"
+  onClear={() => setQuery('')}
+/>
+```
+
+`leading` replaces the built-in magnifier when you need something else in
+front of the input.
+
+```tsx
+<Searchbar
+  value={query}
+  onChangeText={setQuery}
+  leading={<Icon name="filter" />}
+  placeholder="Filter by tag"
+/>
+
+<Searchbar value={query} onChangeText={setQuery} disabled placeholder="Search is offline" />
+```
+
+## Clear affordance
+
+The clear button shows only when all three hold: `onClear` was provided, the
+field is not disabled, and `value` is non-empty. It sits inside the field,
+labeled "Clear search" for assistive technology, and shares the field's
+`testID` with a `-clear` suffix.
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `value` | `string` | — | Current text (controlled). |
+| `onChangeText` | `(text: string) => void` | — | Called on every text change. |
+| `placeholder` | `string` | — | Placeholder shown while the field is empty. |
+| `disabled` | `boolean` | `false` | Disables editing and hides the clear affordance. |
+| `onClear` | `() => void` | — | When provided and `value` is non-empty, a clear affordance is shown. |
+| `leading` | `ReactNode` | — | Leading content; defaults to a built-in magnifier glyph. |
+| `accessibilityLabel` | `string` | — | Names the input for assistive technology. |
+| `style` | `StyleProp<ViewStyle>` | — | Field style overrides. |
+| `testID` | `string` | — | Test identifier; the clear button appends `-clear`. |
+
+## Accessibility
+
+The native input keeps React Native's standard text-field semantics. The
+clear affordance is a separate button labeled "Clear search". Pass
+`accessibilityLabel` when the placeholder alone does not describe the
+field's purpose.
+
+## See also
+
+<LinkCard title="TextInput" href="/components/text-input/" description="The outlined form field for everything that is not search." />
+<LinkCard title="Chip" href="/components/chip/" description="Compact removable tokens for active search filters." />
+<LinkCard title="Icons" href="/concepts/icons/" description="Swapping the built-in glyphs for your own icon set." />

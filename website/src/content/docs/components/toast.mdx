@@ -1,0 +1,119 @@
+---
+title: Toast
+description: App-wide transient notices from a provider-owned queue, stacked from the top and capped at three.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+Toast is a transient notice you fire from anywhere in the tree.
+`ToastProvider` owns the app-wide queue and renders the stack through a
+`Portal`, floating above all content; `useToast().show(...)` enqueues a
+toast that auto-dismisses on its own. Toasts stack from the top of the
+viewport and are capped at three — the oldest drops off when a fourth
+arrives. `primary` is intentionally absent from the tone set: toasts speak
+in semantics only.
+
+## Import
+
+```tsx
+import { ToastProvider, useToast } from 'react-native-meowui';
+```
+
+## Usage
+
+Mount the provider once, near the root, inside `MeowProvider`:
+
+```tsx
+import { MeowProvider, ToastProvider, useToast } from 'react-native-meowui';
+
+export default function App() {
+  return (
+    <MeowProvider>
+      <ToastProvider>
+        <Workspace />
+      </ToastProvider>
+    </MeowProvider>
+  );
+}
+```
+
+Then call `useToast().show(...)` anywhere below it:
+
+```tsx
+function Workspace() {
+  const toast = useToast();
+
+  const save = () => {
+    toast.show({ message: 'Draft saved', tone: 'success' });
+  };
+
+  const remove = () => {
+    toast.show({
+      message: 'Report deleted',
+      tone: 'error',
+      duration: 4000,
+      action: { label: 'Undo', onPress: restoreReport },
+    });
+  };
+
+  return (
+    <View>
+      <Button onPress={save}>Save draft</Button>
+      <Button variant="ghost" tone="error" onPress={remove}>Delete</Button>
+    </View>
+  );
+}
+```
+
+Calling `useToast()` outside a provider is a no-op, warned about in
+development — nothing crashes, but no toast renders.
+
+## The queue
+
+| Behavior | Detail |
+| --- | --- |
+| Stacking | Toasts stack from the top of the viewport, newest at the bottom of the stack. |
+| Cap | Three simultaneous toasts — the oldest drops off when a fourth arrives. |
+| Auto-dismiss | Each toast dismisses itself after `duration`, defaulting to 2500ms. |
+| Actions | An action's `onPress` runs first, then the toast dismisses. |
+
+Non-neutral tones show an 8dp tone-colored dot before the message, so a
+stack of mixed notices stays scannable.
+
+Neutral toasts sit on espresso ink with cream copy; semantic tones use the
+family's muted ground with a solid tone hairline and deep tone ink. Every
+toast takes `xl` corners and a soft layered shadow, and enters by sliding
+down 12px while fading in.
+
+## Props
+
+### ToastProvider
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `children` | `ReactNode` | — | The app tree. Mount the provider once, near the root, inside `MeowProvider`. |
+
+### ToastOptions
+
+Options passed to `useToast().show(...)`.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `message` | `string` | — | Message body, wrapped at two lines. |
+| `tone` | `'neutral' \| 'success' \| 'error' \| 'info' \| 'warning'` | `'neutral'` | Semantic color family. Non-neutral tones show a tone-colored dot. |
+| `duration` | `number` | `2500` | Milliseconds before auto-dismiss. |
+| `action` | `ToastAction` | — | Trailing action — pressing it runs `onPress` and dismisses the toast. |
+
+`ToastAction` is `{ label, onPress }`.
+
+## Accessibility
+
+Each toast surface carries `accessibilityLiveRegion="polite"`, so screen
+readers announce messages as they appear. The action renders with role
+`button`, labeled by its `label`.
+
+## See also
+
+<LinkCard title="Snackbar" href="/components/snackbar/" description="A transient bottom-anchored confirmation bar with consumer-controlled visibility." />
+<LinkCard title="Portals" href="/concepts/portals/" description="How overlay components render above everything else." />
+<LinkCard title="Color tokens" href="/theming/colors/" description="What the muted tone fills resolve to in both modes." />

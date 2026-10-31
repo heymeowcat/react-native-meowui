@@ -1,0 +1,133 @@
+---
+title: TextInput
+description: Single-line text field with label, helper and error states.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+TextInput is a single-line text field with a label above, helper text below,
+and clear focus and error states. The field is a cream well bounded by a 1px
+`outlineStrong` border and a 12px radius. Focus lifts the ground to milk and
+inks the border blueberry; errors stamp oxblood on the label, border and
+helper together. Disabled fields settle to the muted surface.
+
+## Import
+
+```tsx
+import { TextInput, type TextInputRef } from 'react-native-meowui';
+```
+
+## Usage
+
+```tsx
+const [email, setEmail] = useState('');
+
+<TextInput
+  label="Email"
+  value={email}
+  onChangeText={setEmail}
+  placeholder="you@example.com"
+  helperText="We only use this to sign you in."
+/>
+```
+
+The error state recolors the label, border and helper together, so a single
+flag is enough to mark a field invalid.
+
+```tsx
+<TextInput
+  label="Email"
+  value={email}
+  onChangeText={setEmail}
+  error
+  helperText="Enter a valid email address."
+/>
+
+<TextInput label="Card number" value="4242 4242 4242 4242" disabled />
+```
+
+`leading` and `trailing` render inside the field, around the input — useful
+for icons, currency prefixes and units.
+
+```tsx
+<TextInput
+  label="Price"
+  value={price}
+  onChangeText={setPrice}
+  leading={<Icon name="attach-money" />}
+  trailing={<Text>USD</Text>}
+/>
+```
+
+## Sizes
+
+| Size | Field height | Input font size |
+| --- | --- | --- |
+| `md` | 46 (from `theme.metrics.input`) | 14 |
+| `lg` | 54 (from `theme.metrics.input`) | 16 |
+
+The field keeps 14dp of horizontal padding, a 10dp gap between leading,
+input and trailing slots, and a 12pt weight-500 label sitting 6dp above the
+well.
+
+## Props
+
+`TextInputProps` extends React Native's `TextInputProps` (minus `ref`), so the
+standard props — `value`, `onChangeText`, `placeholder`, `keyboardType`,
+`autoCapitalize`, `maxLength`, and so on — flow through to the native input.
+The `style` prop also flows through and styles the input's text.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `label` | `string` | — | Label rendered above the field. |
+| `helperText` | `string` | — | Helper text rendered below the field; uses the error color when `error` is set. |
+| `error` | `boolean` | `false` | Marks the field invalid: label, border and helper render in the error color. |
+| `disabled` | `boolean` | `false` | Disables editing and mutes the field. |
+| `size` | `'md' \| 'lg'` | `'md'` | Field height, resolved through `theme.metrics.input`. |
+| `leading` | `ReactNode` | — | Content rendered inside the field, before the input (icons, prefixes). |
+| `trailing` | `ReactNode` | — | Content rendered inside the field, after the input (actions, units). |
+| `containerStyle` | `StyleProp<ViewStyle>` | — | Style for the outer label / field / helper column. |
+| `…RN TextInputProps` | `TextInputProps` | — | Everything else flows through to the native input, including `style` (input text), `onFocus`, `onBlur` and `accessibilityLabel`. |
+
+Two props are intercepted rather than passed straight through:
+`placeholderTextColor` defaults to the theme's `onSurfaceMuted` when omitted,
+and `underlineColorAndroid` is forced to transparent so the border stays the
+only outline.
+
+## Ref
+
+The ref is a handle to the underlying native input, not the wrapper view.
+
+```tsx
+const inputRef = useRef<TextInputRef>(null);
+
+<TextInput ref={inputRef} label="Verification code" />
+
+inputRef.current?.focus();
+```
+
+| Method | Signature | Description |
+| --- | --- | --- |
+| `focus` | `() => void` | Focuses the native input. |
+| `blur` | `() => void` | Removes focus. |
+| `clear` | `() => void` | Clears the text. |
+| `isFocused` | `() => boolean` | Whether the input currently has focus. |
+| `setNativeProps` | `(props: Record<string, unknown>) => void` | Sets native props on the underlying input directly. |
+
+The interface is declared structurally instead of re-exporting React Native's
+`TextInputInstance`, which aliases a compiler-private class that cannot appear
+in emitted declarations.
+
+## Accessibility
+
+The native input keeps React Native's standard text-field semantics. The
+visual `label` is a separate `Text`, not programmatically associated with the
+input, so pass `accessibilityLabel` (it flows through like any other prop)
+when the label text alone is not enough. Focus, error and disabled states are
+communicated visually through the border and colors.
+
+## See also
+
+<LinkCard title="Searchbar" href="/components/searchbar/" description="A milk-paper search field with a built-in magnifier and clear affordance." />
+<LinkCard title="Theme tokens" href="/theming/tokens/" description="Where `metrics.input` heights and outline colors come from." />
+<LinkCard title="Accessibility" href="/concepts/accessibility/" description="How the kit names and labels controls for screen readers." />

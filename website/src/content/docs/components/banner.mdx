@@ -1,0 +1,79 @@
+---
+title: Banner
+description: An inline tone slip for persistent, non-blocking messages.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+Banner is an inline soft tone slip for messages that should stay put — an
+update notice, a storage warning, a maintenance note. It does not interrupt
+or float; it sits in the layout until you hide it. The slip is a tinted
+paper ground with a 1px tone border and 12px corners. While `visible` is
+false it renders nothing, and dismissal is fully the consumer's job — wire
+it through an entry in `actions` that flips `visible`.
+
+## Import
+
+```tsx
+import { Banner } from 'react-native-meowui';
+```
+
+## Usage
+
+```tsx
+function UpdateNotice() {
+  const [visible, setVisible] = useState(true);
+
+  return (
+    <Banner
+      visible={visible}
+      icon={<Icon name="info" />}
+      text="A new version is available."
+      tone="info"
+      actions={[
+        { label: 'Update', onPress: () => installUpdate() },
+        { label: 'Dismiss', onPress: () => setVisible(false) },
+      ]}
+    />
+  );
+}
+```
+
+## Tones
+
+| Tone | Reads as |
+| --- | --- |
+| `neutral` | Oat ground, warm border, muted ink — a housekeeping note |
+| `info`, `warning`, `error`, `success` | Tinted tone ground, tone border, deep tone ink on the message; solid tone on icon and actions |
+
+`neutral` banners read as ordinary content, which suits housekeeping notes.
+The semantic tones keep the message in a deep tone ink while the cloned icon
+and action labels take the solid tone, so the strip reads as one voice
+without shouting.
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `visible` | `boolean` | — | Renders nothing while false — visibility is fully consumer-controlled. |
+| `icon` | `ReactNode` | — | Leading icon content; cloned with the tone color when it accepts one. |
+| `text` | `string` | — | Message body. |
+| `tone` | `'neutral' \| 'info' \| 'warning' \| 'error' \| 'success'` | `'neutral'` | Color family for message, icon and actions. |
+| `actions` | `BannerAction[]` | — | Ghost text buttons rendered after the message; they tint `surfaceActive` while pressed. |
+| `style` | `StyleProp<ViewStyle>` | — | Style overrides for the surface. |
+| `testID` | `string` | — | Test identifier. |
+
+Each action is `{ label, onPress }`; the label doubles as the button's
+accessible name.
+
+## Accessibility
+
+The message reads as body text, and each action renders with role `button`
+labeled by its `label`. The banner is persistent and inline, so it applies no
+live region — place it where readers encounter it naturally. For transient,
+time-limited confirmations use [Snackbar](/components/snackbar/) instead.
+
+## See also
+
+<LinkCard title="Snackbar" href="/components/snackbar/" description="A transient bottom-anchored confirmation bar." />
+<LinkCard title="Toast" href="/components/toast/" description="Provider-owned transient notices stacked from the top." />

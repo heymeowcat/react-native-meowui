@@ -1,0 +1,70 @@
+---
+title: Portals & overlays
+description: How Dialog, Menu, BottomSheet, Toast and friends escape the view tree.
+---
+
+Floating UI has a classic React Native problem: a menu inside a card inside a
+`ScrollView` gets clipped, stacked, or transformed away by its ancestors.
+MeowUI solves this once, in one place.
+
+## Portal and PortalHost
+
+`<Portal>` teleports its children to the nearest `<PortalHost>` **above the
+surrounding tree**:
+
+```tsx
+import { Portal, PortalHost, Surface } from 'react-native-meowui';
+
+<PortalHost>
+  <Text>I render in place</Text>
+  <Portal>
+    <Surface style={{ position: 'absolute', bottom: 24, left: 24 }}>
+      I render in the host's overlay, above everything
+    </Surface>
+  </Portal>
+</PortalHost>
+```
+
+Portaled content keeps rendering and re-rendering normally — only its position
+in the hierarchy changes. Component instances are preserved across re-renders,
+so state inside a portal is not lost.
+
+`MeowProvider` already includes a `PortalHost`, so most apps mount none
+explicitly. Nest additional hosts when content must layer inside a region
+(e.g. a portal that stays inside a modal).
+
+## Stacking by token, not by luck
+
+Every kit overlay passes its `theme.zIndex` token when it portals, and the
+host sorts entries by it:
+
+| Layer | Token | Value |
+| --- | --- | --- |
+| Menus & Select dropdowns | `zIndex.menu` | 900 |
+| Bottom sheets | `zIndex.sheet` | 950 |
+| Dialogs & Modal | `zIndex.dialog` | 1000 |
+| Toasts & snackbars | `zIndex.toast` | 1050 |
+| Tooltips | `zIndex.tooltip` | 1100 |
+
+A Dialog opened *after* a Toast still renders **below** it — stacking follows
+the tokens, not mount order. For your own portaled content, pass a zIndex:
+
+```tsx
+<Portal zIndex={925}>{/* above menus, below sheets */}</Portal>
+```
+
+## Which overlay to use
+
+| Need | Component |
+| --- | --- |
+| A decision the user must make | `Dialog` / `AlertDialog` |
+| A secondary surface with actions | `BottomSheet` |
+| A list of actions anchored to a trigger | `Menu` |
+| Passive, non-blocking message | `Snackbar` / `Toast` |
+| Full custom layout | `Modal` |
+| A label on long-press | `Tooltip` |
+
+The modal-family overlays animate entrances with native-driver transforms
+and fade their scrims; `Snackbar`, `Toast` and `Tooltip` are scrim-less and
+leave the rest of the screen interactive. See each component's page for
+specifics.

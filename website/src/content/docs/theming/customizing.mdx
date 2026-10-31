@@ -1,0 +1,121 @@
+---
+title: Customizing
+description: Override tokens, map your fonts, or build a fully custom theme.
+---
+
+There are three levels of customization, from lightest to heaviest.
+
+## 1. Inline overrides
+
+Pass partial token overrides to `MeowProvider`. They are deep-merged onto the
+reference palette for the active mode:
+
+```tsx
+import { MeowProvider } from 'react-native-meowui';
+
+<MeowProvider
+  overrides={{
+    colors: { primary: '#2F6B4F', onPrimary: '#FFFFFF' },
+    radii: { md: 9, lg: 14 },
+    typography: { body: { fontSize: 16, lineHeight: 23 } },
+    metrics: { control: { md: 44 } },
+  }}
+>
+  {children}
+</MeowProvider>
+```
+
+Override only what you need — everything else stays tuned. Colors override the
+**active mode's** palette, so light and dark keep their own values.
+
+## 2. Fonts
+
+The kit speaks three voices: **Fraunces** for headings, **DM Sans** for body
+and controls, **DM Mono** for metadata. Map your loaded font families through
+`theme.fonts` — sans slots are picked by weight for body variants, display
+slots for the display variants (`display`, `headline`, `title`, `subtitle`),
+and mono slots for the metadata variants (`overline`, `mono`):
+
+```tsx
+import {
+  useFonts as useFraunces,
+  Fraunces_400Regular,
+  Fraunces_600SemiBold,
+} from '@expo-google-fonts/fraunces';
+import {
+  useFonts as useDMSans,
+  DMSans_400Regular,
+  DMSans_500Medium,
+  DMSans_600SemiBold,
+} from '@expo-google-fonts/dm-sans';
+import {
+  useFonts as useDMMono,
+  DMMono_400Regular,
+  DMMono_500Medium,
+} from '@expo-google-fonts/dm-mono';
+
+<MeowProvider
+  overrides={{
+    fonts: {
+      regular: 'DMSans_400Regular',
+      medium: 'DMSans_500Medium',
+      semibold: 'DMSans_600SemiBold',
+      displayRegular: 'Fraunces_400Regular',
+      displayMedium: 'Fraunces_600SemiBold',
+      displaySemibold: 'Fraunces_600SemiBold',
+      monoRegular: 'DMMono_400Regular',
+      monoBold: 'DMMono_500Medium',
+    },
+  }}
+>
+  {children}
+</MeowProvider>
+```
+
+Load the fonts first (three `useFonts` hooks) and skip rendering until they
+resolve. Unmapped slots fall back to each voice's default family; unloaded
+fonts fall back to the system font.
+
+## 3. A fully custom theme
+
+`createTheme` builds a standalone, frozen theme object — useful when the theme
+comes from remote config, Redux, or your own design system:
+
+```tsx
+import { createTheme, MeowProvider } from 'react-native-meowui';
+
+const brand = createTheme({
+  mode: 'dark',
+  colors: {
+    primary: '#C9A227',
+    onPrimary: '#1A1608',
+    primaryMuted: '#332B0E',
+    onPrimaryMuted: '#E8D68A',
+  },
+  radii: { sm: 4, md: 8, lg: 12 },
+});
+
+<MeowProvider theme={brand}>{children}</MeowProvider>
+```
+
+Passing a complete `theme` puts the provider in **controlled mode** — it renders
+exactly the theme you gave it and stops resolving modes internally. Combine
+with [Dark mode](/theming/dark-mode/#controlled) if you manage the scheme
+yourself.
+
+## Deriving tokens is your job
+
+MeowUI includes no color-manipulation library (that would be a runtime
+dependency). If your brand needs derived shades — hovers, disabled fills —
+precompute them and set the tokens explicitly:
+
+```tsx
+const accent = '#2F6B4F';
+const theme = createTheme({
+  colors: {
+    primary: accent,
+    primaryMuted: '#E4EFE9',
+    onPrimaryMuted: '#1E4A36',
+  },
+});
+```

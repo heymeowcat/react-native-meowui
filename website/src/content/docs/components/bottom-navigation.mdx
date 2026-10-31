@@ -1,0 +1,96 @@
+---
+title: Bottom navigation
+description: A quiet bottom bar of icon destinations with optional badges.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+`BottomNavigation` is the app-level destination bar: a 64px, square-cornered
+milk-paper `Surface`, ruled along its top edge by a hairline, whose items pair
+an icon with a label and an optional badge. The consumer owns the selected
+state and the screens being switched.
+
+## Import
+
+```tsx
+import { BottomNavigation } from 'react-native-meowui';
+```
+
+## Usage
+
+```tsx
+const [tab, setTab] = useState('home');
+
+<BottomNavigation
+  items={[
+    { value: 'home', label: 'Home', icon: <Icon name="home" /> },
+    { value: 'search', label: 'Search', icon: <Icon name="search" /> },
+    { value: 'inbox', label: 'Inbox', icon: <Icon name="mail" />, badge: 3 },
+    { value: 'profile', label: 'Profile', icon: <Icon name="person" /> },
+  ]}
+  value={tab}
+  onChange={setTab}
+/>
+```
+
+## Safe areas
+
+The bar does not handle device safe areas for you. Pad it with `style` so
+items clear the bottom inset and the home indicator.
+
+```tsx
+const insets = useSafeAreaInsets();
+
+<BottomNavigation
+  style={{ paddingBottom: insets.bottom }}
+  items={items}
+  value={tab}
+  onChange={setTab}
+/>
+```
+
+## Behavior
+
+- Active icons and labels take `colors.primary` and weight 600; inactive ones
+  stay `onSurfaceMuted` at weight 400. The active icon also rests on a
+  blueberry-muted well (`primaryMuted`) — color and well together are the
+  indicator. Icons receive the resolved `color` when they accept one.
+- `badge` renders a 16pt error-colored pill on the icon's top-right — a count
+  or short text at 10pt.
+- The bar is a `Surface` with `radius="none"` and no cast; a 1px `outline`
+  rule marks its top edge, and items stretch evenly across the width.
+
+## Props
+
+### BottomNavigation props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `items` | `BottomNavigationItem[]` | — | Required. Destination descriptors. |
+| `value` | `string` | — | Required. The selected destination's `value`. |
+| `onChange` | `(value: string) => void` | — | Required. Called with the newly selected destination's `value`. |
+| `accessibilityLabel` | `string` | — | Label for the tablist. |
+| `style` | `StyleProp<ViewStyle>` | — | Container style overrides; add safe-area padding here. |
+| `testID` | `string` | — | Test identifier; each item appends its `value`. |
+
+### BottomNavigationItem props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `value` | `string` | — | Required. Stable identifier reported through `onChange`. |
+| `label` | `string` | — | Required. Label under the icon. |
+| `icon` | `ReactNode` | — | Required. Icon content — resolved `color` is injected when supported. |
+| `badge` | `number \| string` | — | Optional count or short text rendered as a pill on the icon's top-right. |
+
+## Accessibility
+
+The bar is role `tablist`, labelled by `accessibilityLabel`. Each item is role
+`tab` with `accessibilityState` `{ selected }`, announced by its `label`. The
+badge is part of the icon, not the accessible name — fold a count into the
+`label` when it matters for screen readers.
+
+## See also
+
+<LinkCard title="Tabs" href="/components/tabs/" description="The screen-level counterpart with an animated indicator." />
+<LinkCard title="Badge" href="/components/badge/" description="Standalone counts and status pills." />
+<LinkCard title="Appbar" href="/components/appbar/" description="The top bar for screen-level actions." />

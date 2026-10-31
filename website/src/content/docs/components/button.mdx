@@ -1,0 +1,87 @@
+---
+title: Button
+description: The kit's primary action — four quiet shapes across five semantic tones.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+Buttons communicate the main things a screen can do. MeowUI's four variants
+map to a strict emphasis hierarchy, so screens stay calm without each app
+reinventing its own hierarchy: **one solid button per view, tonal for
+supporting actions, outline for secondary, ghost for inline emphasis**.
+
+## Import
+
+```tsx
+import { Button } from 'react-native-meowui';
+```
+
+## Usage
+
+```tsx
+<Button onPress={save}>Save changes</Button>
+
+<Button variant="tonal" tone="success">Approve</Button>
+<Button variant="outline">Learn more</Button>
+<Button variant="ghost" tone="error">Remove</Button>
+
+<Button loading>Processing</Button>
+<Button disabled>Unavailable</Button>
+
+<Button icon={<Icon name="add" />} onPress={create}>
+  New report
+</Button>
+```
+
+## Variants
+
+| Variant | Fill | Use for |
+| --- | --- | --- |
+| `solid` | tone fill, `on*` content, same-fill border | The primary action of a view |
+| `tonal` | tone muted fill, `on*Muted` content | Supporting actions with color weight |
+| `outline` | milk surface fill + `outlineStrong` 1px border | Secondary actions |
+| `ghost` | transparent, muted content | Low-emphasis inline actions |
+
+Solid, tonal and outline keys rest on a 2px warm cast (`colors.shadow`).
+Pressing collapses the cast, shifts the key down 1px and scales it to 0.99 —
+a soft key bottoming out. Ghost keys stay flat and press with a
+`surfaceMuted` tint.
+
+Heights come from `theme.metrics.control` — 34 / 44 / 52 — with a 12px
+radius and weight-600 labels (12pt at `sm`, 13pt otherwise).
+
+The `tone` prop selects the color family — `'primary'` (default, blueberry),
+`'success'`, `'warning'`, `'error'`, `'info'`. Disabled buttons render in the
+neutral muted state regardless of tone.
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `children` | `ReactNode` | — | Label text, or custom content for full control. |
+| `variant` | `'solid' \| 'tonal' \| 'outline' \| 'ghost'` | `'solid'` | Visual shape. |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Height from `theme.metrics.control`. |
+| `tone` | `ButtonTone` | `'primary'` | Semantic color family. |
+| `disabled` | `boolean` | `false` | Disables interaction, renders muted. |
+| `loading` | `boolean` | `false` | Leading spinner, disables interaction. |
+| `icon` | `ReactNode` | — | Leading content. Receives the resolved content `color`. |
+| `trailingIcon` | `ReactNode` | — | Trailing content, colored like `icon`. |
+| `fullWidth` | `boolean` | `false` | Stretch to the parent's width. |
+| `onPress` | `() => void` | — | Press handler. |
+| `onLongPress` | `() => void` | — | Long-press handler. |
+| `accessibilityLabel` | `string` | string children | Accessible name. |
+| `testID` | `string` | — | Test identifier. |
+| `style` | `StyleProp<ViewStyle>` | — | Container style overrides. |
+| `labelStyle` | `StyleProp<TextStyle>` | — | Label style overrides. |
+
+## Accessibility
+
+Role `button` with `accessibilityState` `{ disabled, busy }`. The accessible
+name falls back to string children; pass `accessibilityLabel` for custom
+content.
+
+## See also
+
+<LinkCard title="IconButton" href="/components/icon-button/" description="A square touch target for a single icon." />
+<LinkCard title="Chip" href="/components/chip/" description="Compact assist, filter and input chips." />
+<LinkCard title="Color tokens" href="/theming/colors/" description="What solid, muted and on-colors resolve to in both modes." />

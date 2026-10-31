@@ -1,0 +1,51 @@
+---
+title: Accessibility
+description: What MeowUI guarantees out of the box, and what stays your responsibility.
+---
+
+Accessibility is built into the components rather than bolted on afterwards.
+Here is the contract.
+
+## What the kit guarantees
+
+**Roles and states.** Every interactive component sets the right
+`accessibilityRole` and `accessibilityState`:
+
+- `Button`, `IconButton`, `FAB`, `Chip` → `button` with `disabled` / `busy` /
+  `selected`
+- `Checkbox` → `checkbox` with `checked`
+- `Radio` → `radio` inside a `radiogroup` container, with `checked`
+- `Switch` → `switch` with `checked`
+- `Slider` → `adjustable` with `accessibilityValue` (min/max/now) **and**
+  `increment` / `decrement` accessibility actions
+- `Tabs`, `BottomNavigation` → `tablist` / `tab` with `selected`
+- `SegmentedButtons` → `radiogroup` + `radio` (single) or buttons (multi)
+
+**Labels with fallbacks.** Components derive a sensible
+`accessibilityLabel` when one exists — `Button` falls back to its string
+children, `FAB` to its label, and `Avatar` exposes its label as the
+accessible name only when it renders an image. When the visible content is
+ambiguous (an icon-only `IconButton`), passing `accessibilityLabel` is on
+you, and the JSDoc says so.
+
+**Overlay semantics.** Portaled overlays are focusable and labeled: dialogs
+expose their title, scrims are labeled dismiss buttons, collapsed accordion
+content is hidden from the accessibility tree, and the portal overlay frame
+itself is transparent to assistive tech so portaled content stays reachable.
+
+**Contrast.** Both reference palettes pair every enabled `on*` content color
+with its fill at ≥ 4.5:1 (AA) — including muted variants and the dark theme.
+`onSurfaceSubtle` is reserved for disabled states and decorative chrome,
+which WCAG exempts from the ratio.
+
+## What stays your responsibility
+
+- **Ambiguous icons** — pass `accessibilityLabel` to icon-only controls.
+- **Screen-order context** — announce a toast's meaning if the message alone
+  doesn't carry it (`AccessibilityInfo.announceForAccessibility`).
+- **Touch targets in your own layouts** — kit controls meet minimum sizes via
+  `theme.metrics`; if you shrink them with styles, re-check the 44×44 guideline.
+- **Localization** — components accept any string; pluralization and RTL text
+  direction are yours. (Layouts use logical properties — `marginStart`,
+  `paddingStart` — so RTL mirroring works, but full RTL audit coverage is
+  ongoing.)

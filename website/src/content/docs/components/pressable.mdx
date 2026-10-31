@@ -1,0 +1,114 @@
+---
+title: Pressable
+description: The kit's touchable primitive — pressed state as a tint or an opacity dip, nothing else.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+`Pressable` is the kit's touchable primitive. On its own it communicates
+pressed state with a background tint or an opacity dip only — no scale, no
+springs. Controls that sit on a paper cast — buttons, cards, chips — layer a
+1px downward press shift and a collapsed cast on top, but that base rule
+never changes. All interactive kit components are built on `Pressable`; reach
+for it directly when composing your own controls so they match.
+
+Feedback follows one rule:
+
+- Pass `tint` and the pressed state fills the background with that color.
+- Omit `tint` and the pressed state dips opacity to `pressedOpacity` —
+  safe on any background.
+
+A disabled pressable settles at `disabledOpacity`.
+
+## Import
+
+```tsx
+import { Pressable } from 'react-native-meowui';
+```
+
+## Usage
+
+```tsx
+import { useRef } from 'react';
+import { Pressable, Text } from 'react-native-meowui';
+
+function Example() {
+  const ref = useRef<PressableRef>(null);
+
+  return (
+    <Pressable
+      ref={ref}
+      tint="#00000010"
+      radius="md"
+      onPress={save}
+    >
+      <Text>Save</Text>
+    </Pressable>
+  );
+}
+```
+
+Opacity feedback instead of a tint:
+
+```tsx
+<Pressable pressedOpacity={0.8} onPress={open}>
+  <Text>Open</Text>
+</Pressable>
+```
+
+`style` also accepts a render function that receives the current `pressed`
+state, like React Native's `Pressable`:
+
+```tsx
+<Pressable
+  style={({ pressed }) => [{ borderColor: pressed ? '#888' : '#ddd' }]}
+  onPress={open}
+>
+  <Text>Open</Text>
+</Pressable>
+```
+
+## Ref
+
+Refs expose a `PressableRef`, a structural handle to the underlying host
+view with the imperative methods you usually need:
+
+```tsx
+interface PressableRef {
+  focus(options?: { preventScroll?: boolean }): void;
+  blur(): void;
+  measure(fn: (x: number, y: number, width: number, height: number, pageX: number, pageY: number) => void): void;
+  measureInWindow(fn: (x: number, y: number, width: number, height: number) => void): void;
+}
+```
+
+It is declared structurally rather than re-exporting React Native's
+`HostInstance`, which aliases a compiler-private class that cannot appear
+in emitted declarations.
+
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `tint` | `string` | — | Background color applied while pressed. When omitted, pressed feedback is a subtle opacity dip — safe on any background. |
+| `radius` | `RadiusKey \| number` | `'sm'` | Corner radius as a token key or explicit number. |
+| `pressedOpacity` | `number` | `0.85` | Opacity applied while pressed when no `tint` is given. |
+| `disabledOpacity` | `number` | `0.45` | Opacity applied when disabled. |
+
+All other React Native `PressableProps` — `onPress`, `onLongPress`,
+`disabled`, `hitSlop`, accessibility props, function `style` — pass through
+unchanged.
+
+## Accessibility
+
+`Pressable` sets no role itself; the component you compose decides. Pass
+`accessibilityRole`, `accessibilityLabel` and `accessibilityState` through
+so your control is announced correctly — see `Button` and `IconButton` for
+the pattern. At the primitive level, feedback never moves or scales content,
+so focus and reading order stay stable while pressing.
+
+## See also
+
+<LinkCard title="Button" href="/components/button/" description="The kit's primary action, built on Pressable." />
+<LinkCard title="IconButton" href="/components/icon-button/" description="A square touch target for a single icon." />
+<LinkCard title="Chip" href="/components/chip/" description="Compact chips that share the same feedback model." />

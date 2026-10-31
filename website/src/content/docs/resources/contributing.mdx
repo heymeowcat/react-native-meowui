@@ -1,0 +1,51 @@
+---
+title: Contributing
+description: How MeowUI development works and the conventions every component follows.
+---
+
+MeowUI's quality comes from one rule: **the kit must feel designed by a single
+person.** The conventions below exist to enforce that.
+
+## Principles
+
+1. **Zero runtime dependencies.** Only `react` and `react-native` are peers.
+   Use RN's built-in `Animated` (native driver for opacity/transform) and
+   `Pressable`.
+2. **Mochi Press visual language.** Oat-cream grounds, espresso ink, blueberry
+   keys, 1px warm hairlines, 2px paper casts under controls and cards, blurred
+   `softElevation` only for floating layers. Fraunces + DM Sans + DM Mono
+   voices, mechanical press states (shift down 1px, slight scale on framed
+   keys, cast collapses) — the spec lives in `stitch_mochi_press/DESIGN.md`.
+3. **Structure over decoration.** Color comes from the theme, never hardcoded.
+   If you're adding a hex value to a component, add a token instead.
+4. **Speed is a feature.** Memoize components, hoist static styles, don't
+   subscribe more of the tree than needed.
+
+## Component conventions
+
+The full spec lives in [CONTRIBUTING.md](https://github.com/heymeowcat/react-native-meowui/blob/main/CONTRIBUTING.md)
+in the repository. The short version:
+
+- One component per folder: `src/components/<Name>/<Name>.tsx` + `index.ts`.
+- Props interface exported as `<Name>Props`; sizes `'sm' | 'md' | 'lg'` via
+  `theme.metrics`; intent via the `Tone` union via `theme.colors`.
+- Strict TypeScript with `import type`; `React.memo` on every component.
+- JSDoc on every public component and non-obvious prop — these docs pages are
+  written from those contracts.
+- Accessibility roles and states threaded through interactive components.
+
+## Development
+
+```bash
+npm install
+npm run typecheck   # tsc --noEmit
+npm run lint        # eslint
+npm test            # jest + @testing-library/react-native
+npm run build       # dual CJS/ESM emit to dist/
+
+cd website && npm install && npm run dev   # docs site on localhost:4321
+```
+
+All four root checks must pass before a commit lands. Docs pages for a new
+component go under `website/src/content/docs/components/` and are added to the
+sidebar in `website/astro.config.mjs`.

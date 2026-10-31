@@ -1,0 +1,90 @@
+---
+title: Quick start
+description: Wrap your app in MeowProvider and start composing screens.
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+Every app wraps its tree once in `MeowProvider`. It supplies the theme and
+manages light/dark mode (following the OS by default), and includes the portal
+host that overlays render through.
+
+<Steps>
+
+1. Wrap your root component in `MeowProvider`.
+2. Compose screens from components — no per-screen setup.
+3. Optionally register an icon renderer.
+
+</Steps>
+
+```tsx
+import { MeowProvider, Button, Card, Text, TextInput } from 'react-native-meowui';
+
+export default function App() {
+  return (
+    <MeowProvider>
+      <SignIn />
+    </MeowProvider>
+  );
+}
+
+function SignIn() {
+  return (
+    <Card outlined style={{ padding: 16, gap: 12 }}>
+      <Text variant="headline">Sign in</Text>
+      <TextInput label="Email" placeholder="you@example.com" />
+      <TextInput label="Password" secureTextEntry />
+      <Button fullWidth>
+        Continue
+      </Button>
+    </Card>
+  );
+}
+```
+
+## Dark mode
+
+`MeowProvider` follows the OS color scheme by default. Force a mode, or switch
+it at runtime:
+
+```tsx
+// Follow the OS (default)
+<MeowProvider>{children}</MeowProvider>
+
+// Force a mode
+<MeowProvider mode="dark">{children}</MeowProvider>
+
+// Toggle at runtime
+function ThemeToggle() {
+  const { mode, toggleMode } = useThemeController();
+  return (
+    <Button variant="ghost" onPress={toggleMode}>
+      {mode === 'dark' ? 'Light' : 'Dark'} mode
+    </Button>
+  );
+}
+```
+
+Read more in [Dark mode](/theming/dark-mode/).
+
+## Access the theme anywhere
+
+```tsx
+import { useTheme } from 'react-native-meowui';
+
+function BrandMark() {
+  const { colors, spacing, radii } = useTheme();
+  return (
+    <View style={{
+      backgroundColor: colors.primaryMuted,
+      padding: spacing[2],
+      borderRadius: radii.sm,
+    }}>
+      <Text style={{ color: colors.onPrimaryMuted }}>Aa</Text>
+    </View>
+  );
+}
+```
+
+`useTheme()` is safe outside a provider — it falls back to the reference light
+theme, so components render correctly in isolation (tests, Storybook).
